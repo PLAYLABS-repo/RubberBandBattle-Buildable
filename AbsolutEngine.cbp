@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="AbsolutEngine" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc-mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/AbsolutEngine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc-mingw32" />
+				<Compiler>
+					<Add option="-std=c17" />
+				</Compiler>
+				<Linker>
+					<Add option="-mconsole" />
+					<Add library="opengl32" />
+					<Add library="user32" />
+					<Add library="winmm" />
+					<Add library="kernel32" />
+					<Add library="gdi32" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/AbsolutEngine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc-mingw32" />
+				<Linker>
+					<Add option="-mconsole" />
+					<Add library="user32" />
+					<Add library="opengl32" />
+					<Add library="kernel32" />
+					<Add library="winmm" />
+					<Add library="gdi32" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="C:/DevelopmentFiles/AbsolutEngine/" />
+			<Add directory="Engine/Src" />
+			<Add directory="Engine/dependencies" />
+			<Add directory="Resources" />
+			<Add directory="../../MinGW" />
+			<Add directory="../../MinGW/bin" />
+			<Add directory="../../MinGW/lib" />
+			<Add directory="../../MinGW/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-mconsole" />
+			<Add library="user32" />
+			<Add library="opengl32" />
+			<Add library="kernel32" />
+			<Add library="winmm" />
+			<Add library="gdi32" />
+		</Linker>
+		<Unit filename="Engine/GL2Render/CameraTransform.h" />
+		<Unit filename="Engine/GL2Render/Render.h" />
+		<Unit filename="Engine/Src/Anim/Anim.h" />
+		<Unit filename="Engine/Src/File/Load.h" />
+		<Unit filename="Engine/Src/Geom/Quad.h" />
+		<Unit filename="Engine/Src/Image/Mapping.cpp" />
+		<Unit filename="Engine/Src/Image/Mapping.h" />
+		<Unit filename="Engine/Src/Image/Texture.cpp" />
+		<Unit filename="Engine/Src/Image/Texture.h" />
+		<Unit filename="Engine/Src/Input/InputKeyboard.h" />
+		<Unit filename="Engine/Src/Log/Log.h" />
+		<Unit filename="Engine/Src/Math/Vec2.h" />
+		<Unit filename="Engine/Src/Window/Window.h" />
+		<Unit filename="Engine/dependencies/engineincludes.h" />
+		<Unit filename="Engine/dependencies/include.h" />
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

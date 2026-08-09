@@ -1,0 +1,20 @@
+//C libraries
+
+#pragma once
+#include <cmath>
+#include <stdio.h>
+#include <time.h>
+#include <algorithm>
+#include <iostream>
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <fstream>
+#include <string>
+#include <iterator>
+#include <chrono>
+
+#include "stb_image.h"
+
+#include "stb_truetype.h"
+#include "json.hpp"
