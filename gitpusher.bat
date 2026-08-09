@@ -14,7 +14,7 @@ if not exist ".git" (
 echo.
 echo Setting remote repository...
 git remote remove origin >nul 2>&1
-git remote add origin hhttps://github.com/PLAYLABS-repo/Absolut-Engine-ULTRA.git
+git remote add origin https://github.com/PLAYLABS-repo/Absolut-Engine-ULTRA.git
 
 echo.
 echo Switching to main branch...
