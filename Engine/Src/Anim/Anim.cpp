@@ -1,7 +1,7 @@
 #include "Anim/Anim.h"
 #include "Image/Texture.h"
 #include "Image/Mapping.h"
-#include "Engine/GL2Render/CameraTransform.h"
+#include "Engine/GLES2Render/CameraTransform.h"
 #include "Geom/Quad.h"
 
 #include "Engine/dependencies/include.h"
@@ -554,7 +554,6 @@ bool Animator::Load(const char* path)
         }
     }
 
-
     // =================================================
     // ROOT ANIMATION
     // =================================================
@@ -903,24 +902,18 @@ void Animator::Update(float dt)
     if (!ActiveAnim || Finished)
         return;
 
-
     if (Fps <= 0.0f)
         return;
 
-
     FrameTimer += dt;
 
-
-    float frameTime =
-        1.0f / Fps;
-
+    const float frameTime = 1.0f / Fps;
 
     while (FrameTimer >= frameTime)
     {
         FrameTimer -= frameTime;
 
         CurrentFrame++;
-
 
         if (CurrentFrame >= TotalFrames)
         {
@@ -936,7 +929,6 @@ void Animator::Update(float dt)
                     : 0;
 
                 Finished = true;
-
                 break;
             }
         }
@@ -945,7 +937,7 @@ void Animator::Update(float dt)
 
 
 // =====================================================
-// DRAW ENTRY
+// DRAW
 // =====================================================
 
 void Animator::Draw(
@@ -956,13 +948,11 @@ void Animator::Draw(
 {
     (void)cam;
 
-
     if (!ActiveAnim)
         return;
 
     if (!img || !atlas)
         return;
-
 
     glEnable(GL_BLEND);
 
@@ -978,32 +968,20 @@ void Animator::Draw(
         1.0f
     );
 
-
-    // =================================================
-    // ROOT PARENT TRANSFORM
-    // =================================================
-
     Vec2 rootPos =
         Parent.Enabled
         ? Parent.Position
         : Vec2{0.0f, 0.0f};
-
 
     float rootRot =
         Parent.Enabled
         ? Parent.Rotation
         : 0.0f;
 
-
     Vec2 rootScale =
         Parent.Enabled
         ? Parent.Scale
         : Vec2{1.0f, 1.0f};
-
-
-    // =================================================
-    // DRAW ROOT TIMELINE
-    // =================================================
 
     DrawAnim(
         *ActiveAnim,
@@ -1016,26 +994,11 @@ void Animator::Draw(
     );
 
 
-    glDisable(GL_BLEND);
 }
 
 
 // =====================================================
-// DRAW SPRITE
-// =====================================================
-//
-// Quad performs the actual rendering.
-//
-// Pivot and BitmapOff remain separate so the Quad
-// can reproduce the Animate-style transform:
-//
-// position
-//     -> pivot
-//     -> rotation
-//     -> -pivot
-//     -> bitmap offset
-//     -> atlas quad
-//
+// SPRITE DRAWING
 // =====================================================
 
 void Animator::DrawSprite(
@@ -1049,188 +1012,132 @@ void Animator::DrawSprite(
     Vec2 bitmapOff
 )
 {
+    if (name.empty())
+        return;
+
     if (!img || !atlas)
         return;
 
-
     Frame fr;
-
 
     if (!atlas->get(name, fr))
         return;
 
+    Quad q;
 
-    float rotDeg =
-        rotRad *
-        (180.0f / 3.14159265f);
+    q.texture = img->Texture;
 
+    q.x = pos.x + bitmapOff.x * scale.x;
+    q.y = pos.y + bitmapOff.y * scale.y;
 
-    float w =
-        fr.w *
-        scale.x;
+    q.w = fr.w * scale.x;
+    q.h = fr.h * scale.y;
 
+    q.PivotX = pivot.x;
+    q.PivotY = pivot.y;
 
-    float h =
-        fr.h *
-        scale.y;
+    q.Rotation = rotRad * (180.0f / 3.14159265f);
 
+    if (img->width > 0 && img->height > 0)
+    {
+        q.u0 = fr.x / (float)img->width;
+        q.v0 = fr.y / (float)img->height;
+        q.u1 = (fr.x + fr.w) / (float)img->width;
+        q.v1 = (fr.y + fr.h) / (float)img->height;
+    }
 
-    float px =
-        pivot.x *
-        scale.x;
+    q.r = 1.0f;
+    q.g = 1.0f;
+    q.b = 1.0f;
 
-
-    float py =
-        pivot.y *
-        scale.y;
-
-
-    float bx =
-        bitmapOff.x *
-        scale.x;
-
-
-    float by =
-        bitmapOff.y *
-        scale.y;
-
-
-    // =================================================
-    // ATLAS UV
-    // =================================================
-
-    float u0 =
-        fr.x /
-        (float)img->width;
-
-
-    float v0 =
-        fr.y /
-        (float)img->height;
-
-
-    float u1 =
-        (fr.x + fr.w) /
-        (float)img->width;
-
-
-    float v1 =
-        (fr.y + fr.h) /
-        (float)img->height;
-
-
-    // =================================================
-    // QUAD
-    // =================================================
-
-    Quad quad;
-
-
-    // Position stays untouched.
-    quad.x = pos.x;
-    quad.y = pos.y;
-
-
-    quad.w = w;
-    quad.h = h;
-
-
-    quad.r = 1.0f;
-    quad.g = 1.0f;
-    quad.b = 1.0f;
-
-
-    quad.Rotation =
-        rotDeg;
-
-
-    // =================================================
-    // PIVOT
-    // =================================================
-
-    quad.PivotX = px;
-    quad.PivotY = py;
-
-
-    // =================================================
-    // BITMAP OFFSET
-    // =================================================
-
-    quad.BitmapOffsetX = bx;
-    quad.BitmapOffsetY = by;
-
-
-    // =================================================
-    // ATLAS UV
-    // =================================================
-
-    quad.u0 = u0;
-    quad.v0 = v0;
-
-    quad.u1 = u1;
-    quad.v1 = v1;
-
-
-    // =================================================
-    // TEXTURE
-    // =================================================
-
-    quad.texture =
-        img->Texture;
-
-
-    quad.draw();
+    q.draw();
 }
 
 
 // =====================================================
-// CORE RECURSIVE RENDER
+// RECURSIVE DRAWING
 // =====================================================
+//
+// Layers are iterated in REVERSE. Layer index 0 is the
+// topmost layer in the timeline panel (meant to render
+// in front), so it must be drawn LAST.
+//
+// =====================================================
+// =========================
+// CORE RENDER
+// =========================
 
 void Animator::DrawAnim(
     AnimTimeline& timeline,
-    Image* img,
-    Atlas* atlas,
-    Vec2 parentPos,
-    float parentRot,
-    Vec2 parentScale,
-    int frame
+    Image*        img,
+    Atlas*        atlas,
+    Vec2          parentPos,
+    float         parentRot,
+    Vec2          parentScale,
+    int           frame
 )
 {
-    // =================================================
-    // RENDER BACK-TO-FRONT
-    // =================================================
+    if (timeline.TotalFrames <= 0)
+        return;
 
-    for (int li =
-         (int)timeline.Layers.size() - 1;
-         li >= 0;
-         li--)
+
+    // =====================================================
+    // DRAW BACK TO FRONT
+    //
+    // Animate/Flash layer 0 is the TOP layer.
+    // Therefore we draw the highest layer index first
+    // and layer 0 last.
+    // =====================================================
+
+    for (size_t layerIndex = timeline.Layers.size();
+         layerIndex-- > 0;)
     {
-        auto& layer =
-            timeline.Layers[li];
+        AnimLayer& layer =
+            timeline.Layers[layerIndex];
 
 
-        for (auto& f :
-             layer.Frames)
+        // =================================================
+        // FIND THE FRAME THAT CONTAINS 'frame'
+        // =================================================
+
+        for (size_t frameIndex = 0;
+             frameIndex < layer.Frames.size();
+             ++frameIndex)
         {
-            // =========================================
-            // Is this frame active?
-            // =========================================
+            AnimFrame& animFrame =
+                layer.Frames[frameIndex];
 
-            if (frame < f.Index ||
-                frame >=
-                    f.Index + f.Duration)
+
+            int start =
+                animFrame.Index;
+
+            int end =
+                animFrame.Index +
+                animFrame.Duration;
+
+
+            if (frame < start ||
+                frame >= end)
             {
                 continue;
             }
 
 
-            for (auto& e :
-                 f.Elements)
+            // =================================================
+            // DRAW ELEMENTS IN THIS FRAME
+            // =================================================
+
+            for (size_t elementIndex = 0;
+                 elementIndex < animFrame.Elements.size();
+                 ++elementIndex)
             {
-                // =====================================
-                // PARENT -> CHILD POSITION
-                // =====================================
+                AnimElement& element =
+                    animFrame.Elements[elementIndex];
+
+
+                // =============================================
+                // CALCULATE ELEMENT TRANSFORM
+                // =============================================
 
                 float cosR =
                     cosf(parentRot);
@@ -1239,138 +1146,169 @@ void Animator::DrawAnim(
                     sinf(parentRot);
 
 
-                float lx =
-                    e.Position.x *
+                float localX =
+                    element.Position.x *
                     parentScale.x;
 
-
-                float ly =
-                    e.Position.y *
+                float localY =
+                    element.Position.y *
                     parentScale.y;
 
 
-                Vec2 pos =
-                {
-                    parentPos.x +
-                        cosR * lx -
-                        sinR * ly,
+              Vec2 worldPos(
+    parentPos.x +
+    cosR * localX -
+    sinR * localY,
 
-                    parentPos.y +
-                        sinR * lx +
-                        cosR * ly
-                };
+    parentPos.y +
+    sinR * localX +
+    cosR * localY
+);
 
 
-                // =====================================
-                // PARENT -> CHILD ROTATION
-                // =====================================
-
-                float rot =
+                float worldRot =
                     parentRot +
-                    e.Rotation;
+                    element.Rotation;
 
 
-                // =====================================
-                // PARENT -> CHILD SCALE
-                // =====================================
-
-                Vec2 scale =
-                {
+                Vec2 worldScale(
                     parentScale.x *
-                        e.Scale.x,
+                    element.Scale.x,
 
                     parentScale.y *
-                        e.Scale.y
-                };
+                    element.Scale.y
+                );
 
 
-                // =====================================
-                // LEAF SPRITE
-                // =====================================
+                // =============================================
+                // DRAW SPRITE
+                // =============================================
 
-                if (!e.SpriteName.empty())
+                if (!element.SpriteName.empty())
                 {
                     DrawSprite(
-                        e.SpriteName,
+                        element.SpriteName,
+
                         img,
                         atlas,
-                        pos,
-                        rot,
-                        scale,
-                        e.Pivot,
-                        e.BitmapOff
+
+                        worldPos,
+
+                        worldRot,
+
+                        worldScale,
+
+                        element.Pivot,
+
+                        element.BitmapOff
                     );
                 }
 
 
-                // =====================================
-                // NESTED SYMBOL
-                // =====================================
+                // =============================================
+                // DRAW NESTED SYMBOL
+                // =============================================
 
-                if (!e.SymbolName.empty())
+                if (!element.SymbolName.empty())
                 {
-                    auto it =
+                    std::map<
+                        std::string,
+                        AnimTimeline
+                    >::iterator it =
                         Symbols.find(
-                            e.SymbolName
+                            element.SymbolName
                         );
 
 
                     if (it != Symbols.end())
                     {
-                        AnimTimeline& sym =
+                        AnimTimeline& child =
                             it->second;
 
 
-                        int frameCount =
-                            sym.TotalFrames > 0
-                            ? sym.TotalFrames
-                            : 1;
+                        int childTotal =
+                            child.TotalFrames;
 
 
-                        int symFrame;
+                        if (childTotal <= 0)
+                            childTotal = 1;
 
 
-                        // Graphic symbols have their
-                        // own playback starting point.
-                        if (e.IsGraphic)
+                        int childFrame;
+
+
+                        // =====================================
+                        // GRAPHIC SYMBOL
+                        // =====================================
+
+                        if (element.IsGraphic)
                         {
-                            symFrame =
-                                e.FirstFrame %
-                                frameCount;
+                            childFrame =
+                                element.FirstFrame;
+
+
+                            if (element.Looping)
+                            {
+                                childFrame %=
+                                    childTotal;
+                            }
+                            else
+                            {
+                                if (childFrame >= childTotal)
+                                {
+                                    childFrame =
+                                        childTotal - 1;
+                                }
+                            }
                         }
+
+                        // =====================================
+                        // NORMAL NESTED SYMBOL
+                        // =====================================
+
                         else
                         {
-                            symFrame =
-                                frame %
-                                frameCount;
+                            childFrame =
+                                frame;
+
+                            childFrame %=
+                                childTotal;
                         }
 
 
-                        // =================================
+                        // =====================================
                         // RECURSE
-                        //
-                        // IMPORTANT:
-                        // Do NOT apply the symbol pivot or
-                        // bitmap offset here.
-                        //
-                        // Those belong to the sprite inside
-                        // the symbol.
-                        // =================================
+                        // =====================================
 
                         DrawAnim(
-                            sym,
+                            child,
+
                             img,
                             atlas,
-                            pos,
-                            rot,
-                            scale,
-                            symFrame
+
+                            worldPos,
+
+                            worldRot,
+
+                            worldScale,
+
+                            childFrame
                         );
                     }
                 }
             }
+
+
+            // =================================================
+            // IMPORTANT:
+            //
+            // A layer can contain multiple keyframes.
+            // Once the frame containing 'frame' has been
+            // found, STOP searching this layer.
+            // =================================================
+
+            break;
         }
     }
 }
-
-} // namespace Absolut
+} // namespace Absolut21`

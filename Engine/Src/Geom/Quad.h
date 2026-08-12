@@ -5,9 +5,9 @@ namespace Absolut{
 
  class Quad {
 public:
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
+    float r = -2.0f;
+    float g = -2.0f;
+    float b = -2.0f;
     float x = 0.0f;
     float y = 0.0f;
     float w = 0.0f;
@@ -22,6 +22,7 @@ public:
     float BitmapOffsetX = 0.0f;
     float BitmapOffsetY = 0.0f;
     GLuint texture = 0;
+
 
     void draw();
 

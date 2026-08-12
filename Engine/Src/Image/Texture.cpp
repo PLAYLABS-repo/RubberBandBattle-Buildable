@@ -1,9 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "Engine/dependencies/include.h"
-
-
 #include "Texture.h"
+
 namespace Absolut
 {
 
@@ -14,16 +13,17 @@ Image::Image()
     height = 0;
 }
 
+
 bool Image::load(const char* path)
 {
-    int channels;
+    int channels = 0;
 
     unsigned char* pixels = stbi_load(
         path,
         &width,
         &height,
         &channels,
-        4
+        STBI_rgb_alpha
     );
 
     if (!pixels)
@@ -36,12 +36,14 @@ bool Image::load(const char* path)
         return false;
     }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     glGenTextures(1, &Texture);
-    glBindTexture(GL_TEXTURE_2D, Texture);
 
+    glBindTexture(
+        GL_TEXTURE_2D,
+        Texture
+    );
+
+    // Do NOT let OpenGL generate/change the image.
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_MIN_FILTER,
@@ -57,14 +59,30 @@ bool Image::load(const char* path)
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_WRAP_S,
-        GL_CLAMP
+        GL_CLAMP_TO_EDGE
     );
 
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_WRAP_T,
-        GL_CLAMP
+        GL_CLAMP_TO_EDGE
     );
+
+    /*
+        stb_image gives us:
+
+        R
+        G
+        B
+        A
+
+        exactly as 8-bit values.
+
+        GLES2:
+        internal format = GL_RGBA
+        source format   = GL_RGBA
+        source type     = GL_UNSIGNED_BYTE
+    */
 
     glTexImage2D(
         GL_TEXTURE_2D,
@@ -78,21 +96,60 @@ bool Image::load(const char* path)
         pixels
     );
 
+    GLenum error = glGetError();
+
+    if (error != GL_NO_ERROR)
+    {
+        printf(
+            "glTexImage2D error: 0x%X\n",
+            error
+        );
+
+        glBindTexture(
+            GL_TEXTURE_2D,
+            0
+        );
+
+        stbi_image_free(pixels);
+
+        glDeleteTextures(
+            1,
+            &Texture
+        );
+
+        Texture = 0;
+
+        width = 0;
+        height = 0;
+
+        return false;
+    }
+
     stbi_image_free(pixels);
+
+    glBindTexture(
+        GL_TEXTURE_2D,
+        0
+    );
 
     return true;
 }
+
 
 void Image::Unload()
 {
     if (Texture != 0)
     {
-        glDeleteTextures(1, &Texture);
+        glDeleteTextures(
+            1,
+            &Texture
+        );
+
         Texture = 0;
     }
 
     width = 0;
     height = 0;
-
 }
+
 }

@@ -13,14 +13,19 @@
 				<Option compiler="gcc-mingw32" />
 				<Compiler>
 					<Add option="-std=c17" />
+					<Add directory="../../mesa3d-26.1.6-devel-mingw/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-mconsole" />
+					<Add option="-lGLESv2" />
+					<Add option="-lEGL" />
 					<Add library="opengl32" />
 					<Add library="user32" />
 					<Add library="winmm" />
 					<Add library="kernel32" />
 					<Add library="gdi32" />
+					<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libEGL.dll.a" />
+					<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libGLESv2.dll.a" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -28,13 +33,20 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc-mingw32" />
+				<Compiler>
+					<Add directory="../../mesa3d-26.1.6-devel-mingw/include" />
+				</Compiler>
 				<Linker>
 					<Add option="-mconsole" />
+					<Add option="-lGLESv2" />
+					<Add option="-lEGL" />
 					<Add library="user32" />
 					<Add library="opengl32" />
 					<Add library="kernel32" />
 					<Add library="winmm" />
 					<Add library="gdi32" />
+					<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libEGL.dll.a" />
+					<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libGLESv2.dll.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -47,30 +59,45 @@
 			<Add directory="../../MinGW/bin" />
 			<Add directory="../../MinGW/lib" />
 			<Add directory="../../MinGW/include" />
+			<Add directory="../../mesa3d-26.1.6-devel-mingw/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-mconsole" />
+			<Add option="-lGLESv2" />
+			<Add option="-lEGL" />
 			<Add library="user32" />
 			<Add library="opengl32" />
 			<Add library="kernel32" />
 			<Add library="winmm" />
 			<Add library="gdi32" />
+			<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libEGL.dll.a" />
+			<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libGLESv2.dll.a" />
+			<Add directory="../../mesa3d-26.1.6-devel-mingw/lib/x64" />
 		</Linker>
 		<Unit filename="Engine/GL2Render/CameraTransform.h" />
 		<Unit filename="Engine/GL2Render/Render.h" />
+		<Unit filename="Engine/Initialize/HelloInitializer.cpp" />
+		<Unit filename="Engine/Initialize/HelloInitializer.h" />
+		<Unit filename="Engine/Src/Anim/Anim.cpp" />
 		<Unit filename="Engine/Src/Anim/Anim.h" />
 		<Unit filename="Engine/Src/File/Load.h" />
+		<Unit filename="Engine/Src/Geom/Quad.cpp" />
 		<Unit filename="Engine/Src/Geom/Quad.h" />
 		<Unit filename="Engine/Src/Image/Mapping.cpp" />
 		<Unit filename="Engine/Src/Image/Mapping.h" />
 		<Unit filename="Engine/Src/Image/Texture.cpp" />
 		<Unit filename="Engine/Src/Image/Texture.h" />
 		<Unit filename="Engine/Src/Input/InputKeyboard.h" />
+		<Unit filename="Engine/Src/Input/InputMouse.h" />
 		<Unit filename="Engine/Src/Log/Log.h" />
 		<Unit filename="Engine/Src/Math/Vec2.h" />
+		<Unit filename="Engine/Src/Sound/Sound.cpp" />
+		<Unit filename="Engine/Src/Sound/Sound.hpp" />
+		<Unit filename="Engine/Src/Window/Window.cpp" />
 		<Unit filename="Engine/Src/Window/Window.h" />
 		<Unit filename="Engine/dependencies/engineincludes.h" />
 		<Unit filename="Engine/dependencies/include.h" />
+		<Unit filename="GameScripts/Init.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />

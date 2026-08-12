@@ -3,7 +3,7 @@
 #pragma once
 namespace Absolut {
 
-void Log(const char* report){
+inline void Log(const char* report){
 printf("%s", report);
 
 

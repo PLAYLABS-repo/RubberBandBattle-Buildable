@@ -1,6 +1,8 @@
 # depslib dependency file v1.0
-1786271061 source:c:\developmentfiles\absolutengine\main.cpp
+1786543794 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
+	"GameScripts/Init.h"
+	<chrono>
 
 1786101981 c:\developmentfiles\absolutengine\engine\math\vec2.h
 
@@ -17,12 +19,12 @@
 	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Anim/Anim.h"
 
-1786180357 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
+1786271413 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
 
-1786171782 c:\developmentfiles\absolutengine\\engine\src\log\log.h
+1786273554 c:\developmentfiles\absolutengine\\engine\src\log\log.h
 	"Engine/dependencies/include.h"
 
-1786263715 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
+1786531831 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -38,6 +40,8 @@
 	"stb_image.h"
 	"stb_truetype.h"
 	"json.hpp"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
 
 1512590989 c:\mingw\include\stdio.h
 	<_mingw.h>
@@ -364,24 +368,27 @@
 1512591001 c:\mingw\include\gl\glext.h
 	<windows.h>
 
-1786192394 c:\developmentfiles\absolutengine\\engine\src\window\window.h
+1786541863 c:\developmentfiles\absolutengine\\engine\src\window\window.h
+	"Engine/dependencies/include.h"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
 
-1786177451 c:\developmentfiles\absolutengine\\engine\gl2render\render.h
+1786273518 c:\developmentfiles\absolutengine\\engine\gl2render\render.h
 	"Engine/dependencies/include.h"
 
-1786263110 c:\developmentfiles\absolutengine\\engine\gl2render\cameratransform.h
+1786271412 c:\developmentfiles\absolutengine\\engine\gl2render\cameratransform.h
 
-1786192410 c:\developmentfiles\absolutengine\\engine\src\file\load.h
+1786273669 c:\developmentfiles\absolutengine\\engine\src\file\load.h
 
-1786268419 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
+1786541784 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
 
-1786252970 c:\developmentfiles\absolutengine\\engine\src\input\inputkeyboard.h
+1786273699 c:\developmentfiles\absolutengine\\engine\src\input\inputkeyboard.h
 	"Engine/dependencies/include.h"
 
-1786270552 c:\developmentfiles\absolutengine\\engine\src\image\texture.h
+1786542172 c:\developmentfiles\absolutengine\\engine\src\image\texture.h
 
-1779969619 c:\developmentfiles\absolutengine\\engine\dependencies\stb_image.h
+1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\stb_image.h
 	"stb_image.h"
 	<stdio.h>
 	<stdlib.h>
@@ -407,7 +414,7 @@
 1512590989 c:\mingw\include\assert.h
 	<_mingw.h>
 
-1779969619 c:\developmentfiles\absolutengine\\engine\dependencies\stb_truetype.h
+1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\stb_truetype.h
 	"stb_truetype.h"
 	<stdio.h>
 	"stb_truetype.h"
@@ -421,13 +428,13 @@
 	<string.h>
 	<string.h>
 
-1786270593 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
+1786542209 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
 	"Engine/dependencies/include.h"
 	"Texture.h"
 
-1786270552 c:\developmentfiles\absolutengine\engine\src\image\texture.h
+1786542172 c:\developmentfiles\absolutengine\engine\src\image\texture.h
 
-1779969619 c:\developmentfiles\absolutengine\\engine\dependencies\json.hpp
+1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\json.hpp
 	<algorithm>
 	<cstddef>
 	<functional>
@@ -619,45 +626,48 @@
 	<any>
 	<string_view>
 
-1786267521 source:c:\developmentfiles\absolutengine\engine\src\image\mapping.cpp
+1786282940 source:c:\developmentfiles\absolutengine\engine\src\image\mapping.cpp
 	"Mapping.h"
 	"json.hpp"
 	<fstream>
 	<string>
 
-1786264980 c:\developmentfiles\absolutengine\engine\src\image\mapping.h
+1786282951 c:\developmentfiles\absolutengine\engine\src\image\mapping.h
 	"Engine/dependencies/include.h"
 
-1786268635 source:c:\developmentfiles\absolutengine\engine\src\geom\quad.cpp
+1786542028 source:c:\developmentfiles\absolutengine\engine\src\geom\quad.cpp
 	"Quad.h"
+	<GLES2/gl2.h>
+	<cmath>
+	<cstdio>
 
-1786268419 c:\developmentfiles\absolutengine\engine\src\geom\quad.h
+1786541784 c:\developmentfiles\absolutengine\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
 
-1786264980 c:\developmentfiles\absolutengine\\engine\src\image\mapping.h
+1786282951 c:\developmentfiles\absolutengine\\engine\src\image\mapping.h
 	"Engine/dependencies/include.h"
 
-1786269411 source:c:\developmentfiles\absolutengine\engine\src\anim\anim.cpp
+1786541791 source:c:\developmentfiles\absolutengine\engine\src\anim\anim.cpp
 	"Anim/Anim.h"
 	"Image/Texture.h"
 	"Image/Mapping.h"
-	"Engine/GL2Render/CameraTransform.h"
+	"Engine/GLES2Render/CameraTransform.h"
 	"Geom/Quad.h"
 	"Engine/dependencies/include.h"
 	<cmath>
 	<fstream>
 
-1786269365 c:\developmentfiles\absolutengine\engine\src\anim\anim.h
+1786538616 c:\developmentfiles\absolutengine\engine\src\anim\anim.h
 	"Engine/dependencies/include.h"
 	"Math/Vec2.h"
 
-1786180357 c:\developmentfiles\absolutengine\engine\src\math\vec2.h
+1786271413 c:\developmentfiles\absolutengine\engine\src\math\vec2.h
 
-1786269365 c:\developmentfiles\absolutengine\\engine\src\anim\anim.h
+1786538616 c:\developmentfiles\absolutengine\\engine\src\anim\anim.h
 	"Engine/dependencies/include.h"
 	"Math/Vec2.h"
 
-1779969619 c:\developmentfiles\absolutengine\engine\dependencies\json.hpp
+1786271413 c:\developmentfiles\absolutengine\engine\dependencies\json.hpp
 	<algorithm>
 	<cstddef>
 	<functional>
@@ -849,22 +859,226 @@
 	<any>
 	<string_view>
 
-1786271090 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
+1786532565 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
+
+1786358327 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1786271111 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
-
-1786263093 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1786541636 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Math/Vec2.h"
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
-	"Engine/GL2Render/Render.h"
-	"Engine/GL2Render/CameraTransform.h"
+	"Engine/GLES2Render/Render.h"
+	"Engine/GLES2Render/CameraTransform.h"
 	"Engine/Src/File/Load.h"
 	"Engine/Src/Geom/Quad.h"
 	"Engine/Src/Input/InputKeyboard.h"
 	"Engine/Src/Image/Texture.h"
 	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Anim/Anim.h"
+	"Engine/Src/Input/InputMouse.h"
+
+1786271724 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
+	<windows.h>
+
+1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
+
+1786538082 c:\developmentfiles\absolutengine\gamescripts\init.h
+	"Engine/dependencies/include.h"
+
+1786357897 c:\developmentfiles\absolutengine\gamescripts\deltatime.h
+	"Engine/dependencies/include.h"
+
+1786357736 source:c:\developmentfiles\absolutengine\gamescripts\deltatime.cpp
+	"DeltaTime.h"
+
+1786532599 source:c:\developmentfiles\absolutengine\engine\src\window\window.cpp
+	"Window.h"
+
+1786541863 c:\developmentfiles\absolutengine\engine\src\window\window.h
+	"Engine/dependencies/include.h"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
+
+1786368202 c:\developmentfiles\absolutengine\\engine\src\sound\sound.hpp
+	"Engine/dependencies/miniaudio.h"
+	"Engine/dependencies/include.h"
+
+1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\miniaudio.h
+	<stddef.h>
+	<stdint.h>
+	<pthread.h>
+	<stdalign.h>
+	<stdarg.h>
+	<assert.h>
+	<limits.h>
+	<math.h>
+	<stdlib.h>
+	<string.h>
+	<stdarg.h>
+	<stdio.h>
+	<strings.h>
+	<wchar.h>
+	<float.h>
+	<windows.h>
+	<sched.h>
+	<pthread.h>
+	<sys/time.h>
+	<time.h>
+	<unistd.h>
+	<stat.h>
+	<sys/stat.h>
+	<emscripten/emscripten.h>
+	<stdint.h>
+	<immintrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<intrin.h>
+	<sys/system_properties.h>
+	<errno.h>
+	<android/log.h>
+	<intrin.h>
+	<dlfcn.h>
+	<AvailabilityMacros.h>
+	<mach/mach_time.h>
+	<sys/types.h>
+	<audioclient.h>
+	<mmdeviceapi.h>
+	<poll.h>
+	<sys/eventfd.h>
+	<alsa/asoundlib.h>
+	<errno.h>
+	<pulse/pulseaudio.h>
+	<jack/jack.h>
+	<TargetConditionals.h>
+	<CoreAudio/CoreAudio.h>
+	<AVFoundation/AVFoundation.h>
+	<AudioToolbox/AudioToolbox.h>
+	<fcntl.h>
+	<sys/audioio.h>
+	<sys/soundcard.h>
+	<fcntl.h>
+	<poll.h>
+	<errno.h>
+	<sys/stat.h>
+	<sys/types.h>
+	<sys/ioctl.h>
+	<sys/audioio.h>
+	<sys/param.h>
+	<sys/param.h>
+	<sys/ioctl.h>
+	<unistd.h>
+	<fcntl.h>
+	<sys/soundcard.h>
+	<AAudio/AAudio.h>
+	<SLES/OpenSLES.h>
+	<SLES/OpenSLES_Android.h>
+	<emscripten/emscripten.h>
+	<emscripten/webaudio.h>
+	<stddef.h>
+	<stddef.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<stdio.h>
+	<wchar.h>
+	<assert.h>
+	<endian.h>
+	<stdlib.h>
+	<string.h>
+	<smmintrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<intrin.h>
+	<assert.h>
+	<intrinsics.h>
+	<intrin.h>
+	<stdio.h>
+	<wchar.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<intrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<assert.h>
+	<stdio.h>
+	<wchar.h>
+
+1512590989 c:\mingw\include\float.h
+	<_mingw.h>
+
+1512590989 c:\mingw\include\unistd.h
+	<_mingw.h>
+	"io.h"
+	"process.h"
+	"getopt.h"
+
+1512590989 c:\mingw\include\getopt.h
+	<_mingw.h>
+
+1512590989 c:\mingw\include\errno.h
+	<_mingw.h>
+	"ptw32_errno.h"
+
+1512590989 c:\mingw\include\dlfcn.h
+	<_mingw.h>
+
+1512590989 c:\mingw\include\fcntl.h
+	<_mingw.h>
+	<io.h>
+
+1512590989 c:\mingw\include\sys\param.h
+	<sys/types.h>
+	<limits.h>
+
+1786446864 source:c:\developmentfiles\absolutengine\engine\src\sound\sound.cpp
+
+1786367970 c:\developmentfiles\absolutengine\engine\src\sound\sound.hpp
+	"Engine/dependencies/include.h"
+	"Engine/dependencies/miniaudio.h"
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\gles2\gl2.h
+	<GLES2/gl2platform.h>
+	<KHR/khrplatform.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\gles2\gl2platform.h
+	<KHR/khrplatform.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\khr\khrplatform.h
+	<stdint.h>
+	<inttypes.h>
+	<stdint.h>
+
+1512590989 c:\mingw\include\inttypes.h
+	<_mingw.h>
+	<stdint.h>
+	<stddef.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\egl\egl.h
+	<EGL/eglplatform.h>
+	<KHR/khrplatform.h>
+	<EGL/eglplatform.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\egl\eglplatform.h
+	<KHR/khrplatform.h>
+	<windows.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<kernel/image.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\gl\gl.h
+	<windows.h>
+	<GL/glext.h>
+
+1783492566 c:\mesa3d-26.1.6-devel-mingw\include\gl\glext.h
+	<windows.h>
+	<KHR/khrplatform.h>
+
+1786273518 c:\developmentfiles\absolutengine\\engine\gles2render\render.h
+	"Engine/dependencies/include.h"
+
+1786271412 c:\developmentfiles\absolutengine\\engine\gles2render\cameratransform.h
 

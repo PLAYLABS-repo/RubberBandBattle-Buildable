@@ -93,18 +93,6 @@ struct AnimTimeline
 // =====================================================
 // PARENT TRANSFORM
 // =====================================================
-//
-// Describes a world-space anchor that this animator
-// is parented to.
-//
-// Example:
-//
-// animator.Parent.Enabled  = true;
-// animator.Parent.Position = {playerX, playerY};
-// animator.Parent.Rotation = playerRotRad;
-// animator.Parent.Scale    = {1, 1};
-//
-// =====================================================
 
 struct AnimParentTransform
 {
@@ -151,16 +139,7 @@ public:
 
 
     // =================================================
-    // FREE / DESTROY ANIMATION
-    // =================================================
-    //
-    // Releases all loaded animation timelines.
-    //
-    // Safe to call manually.
-    //
-    // Load() should also call this before loading
-    // another animation file.
-    //
+    // FREE
     // =================================================
 
     void FreeAnim();
@@ -170,33 +149,17 @@ public:
     // PLAY
     // =================================================
 
-    // Plays:
-    //
-    // entity + "_ANIM_" + animType
-    //
-    // Example:
-    //
-    // Play("PLAYER", "RUN");
-    //
-    // -> PLAYER_ANIM_RUN
-    //
-    // Loops by default.
-
     void Play(
         const std::string& entity,
         const std::string& animType
     );
 
 
-    // Explicit looping playback
-
     void PlayLoopAnim(
         const std::string& entity,
         const std::string& animType
     );
 
-
-    // Plays once and stops on the last frame
 
     void PlayOnce(
         const std::string& entity,
@@ -229,14 +192,6 @@ public:
 
     // =================================================
     // PART SWAPPING
-    // =================================================
-    //
-    // ChangePart:
-    //     Only top-level timeline.
-    //
-    // ChangeParts:
-    //     Top-level + recursive nested symbols.
-    //
     // =================================================
 
     void ChangePart(
@@ -302,13 +257,9 @@ private:
         AnimTimeline& timeline,
         Image* img,
         Atlas* atlas,
-
         Vec2 parentPos,
-
         float parentRot,
-
         Vec2 parentScale,
-
         int frame
     );
 
@@ -363,17 +314,9 @@ private:
 // =====================================================
 // GLOBAL FREE FUNCTION
 // =====================================================
-//
-// Allows:
-//
-//     Absolut::FreeAnim(anim);
-//
-// This simply calls:
-//
-//     anim.FreeAnim();
-//
-// =====================================================
 
 void FreeAnim(Animator& anim);
+
+void Update(float dt = 1.0f / 60.0f);
 
 } // namespace Absolut

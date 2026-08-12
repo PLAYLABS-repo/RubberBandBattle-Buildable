@@ -2,10 +2,10 @@
 
 #pragma once
 namespace Absolut{
-  bool KeyDown(int key){
+ inline bool KeyDown(int key){
     return GetAsyncKeyState(key) & 0x8000;
 }
-  bool KeyPressed(int key) {
+ inline bool KeyPressed(int key) {
         static bool previousState[256] = {};
 
         bool currentState = KeyDown(key);

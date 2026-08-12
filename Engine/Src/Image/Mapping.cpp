@@ -103,5 +103,11 @@ bool Absolut::Atlas::get(
     }
 
     return false;
+
 }
+ void Absolut::FreeAtlas(Absolut::Atlas* atlas) {
+         if (!atlas)
+            return;
+     delete atlas;
+     }
 

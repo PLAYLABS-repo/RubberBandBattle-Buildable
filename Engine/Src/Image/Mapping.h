@@ -25,5 +25,5 @@ public:
     // Works with both full paths and bare filenames.
     bool get(const std::string& name, Frame& out) const;
 };
-
+void FreeAtlas(Atlas* atlas) ;
 }

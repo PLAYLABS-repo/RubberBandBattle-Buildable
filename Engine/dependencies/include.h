@@ -18,3 +18,6 @@
 
 #include "stb_truetype.h"
 #include "json.hpp"
+
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>

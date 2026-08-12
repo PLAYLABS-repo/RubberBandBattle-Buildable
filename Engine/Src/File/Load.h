@@ -1,6 +1,6 @@
 #pragma once
 namespace Absolut {
-std::string Load(const char* path)
+inline std::string Load(const char* path)
 {
     std::ifstream file(path);
 
