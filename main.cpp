@@ -26,23 +26,27 @@ int main()
     Absolut::HelloWorldInit();
 
     Absolut::InitAssets();
-
-
+Absolut::Mesh cube = Absolut::Mesh::CreateCube(1.5f);
+Absolut::SceneCamera.mode = Absolut::ProjectionMode::Perspective;
+Absolut::SceneCamera.position = { 0.0f, 0.0f, 10.0f };  // must be > object's z + perspNear
+Absolut::SceneCamera.perspNear = 0.1f;
+Absolut::SceneCamera.perspFar  = 1000.0f;
     // =========================================================
     // PLAYER POSITION
     // =========================================================
 
+ Absolut::PlayerAnim.AnchorTo(Absolut::WORLD);
+
     Absolut::PlayerAnim.Parent.Enabled = true;
 
     Absolut::PlayerAnim.Parent.Position =
-        Absolut::Vec2(640.0f, 360.0f);
+        Absolut::Vec2(0.0f, -100.0f);
 
     Absolut::PlayerAnim.Parent.Rotation =
         0.0f;
 
     Absolut::PlayerAnim.Parent.Scale =
-        Absolut::Vec2(1.0f, 1.0f);
-
+        Absolut::Vec2(0.01f, 0.01f);
 
 
 
@@ -54,10 +58,10 @@ int main()
     Absolut::LastPlayerAnimState =
         Absolut::PlayerAnimState::IDLE;
 
-
-    // =========================================================
-    // MAIN LOOP
-    // =========================================================
+cube.position = {0, 0, 0};
+cube.rotation.y = 30.0f;      // degrees
+cube.scale = {1, 1, 1};
+cube.r = 0.8f; cube.g = 0.2f; cube.b = 0.2f; // used when no texture
 
     while (Absolut::ScenePreview.update())
     {
@@ -67,6 +71,7 @@ int main()
             0.15f,
             1.0f
         );
+
 
 
         // =====================================================
@@ -121,18 +126,7 @@ int main()
 
 
         // =====================================================
-        // DRAW PLAYER
-        // =====================================================
-
-        Absolut::PlayerAnim.Draw(
-            &Absolut::PlayerImg,
-            &Absolut::PlayerMap,
-            Absolut::SceneCamera
-        );
-
-
-        // =====================================================
-        // CAMERA / PRESENT
+        // CAMERA
         // =====================================================
 
         Absolut::SceneCamera.apply(
@@ -140,11 +134,51 @@ int main()
             720
         );
 
+
+        // =====================================================
+        // DRAW PLAYER
+        // =====================================================
+
+     cube.draw();
+     glDisable(GL_DEPTH_TEST);
+        Absolut::PlayerAnim.Draw(
+            &Absolut::PlayerImg,
+            &Absolut::PlayerMap,
+            Absolut::SceneCamera
+        );
+
+          if (Absolut::KeyDown('W')){
+
+          Absolut::SceneCamera.position.z += -0.1f;
+
+    }
+     if (Absolut::KeyDown('S')){
+
+          Absolut::SceneCamera.position.z += 0.1f;
+
+    }
+       if (Absolut::KeyDown('A')){
+
+          Absolut::SceneCamera.position.x += -0.1f;
+
+    }
+        if (Absolut::KeyDown('D')){
+
+          Absolut::SceneCamera.position.x += 0.1f;
+
+    }
+
+
+
+        // =====================================================
+        // PRESENT
+        // =====================================================
+
         Absolut::SwapWindow(
             Absolut::SceneCamera
         );
+           cube.rotation.x += 5;
     }
-
 
     // =========================================================
     // CLEANUP

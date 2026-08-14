@@ -76,11 +76,15 @@
 		</Linker>
 		<Unit filename="Engine/GL2Render/CameraTransform.h" />
 		<Unit filename="Engine/GL2Render/Render.h" />
+		<Unit filename="Engine/GLES2Render/CameraTransform.h" />
+		<Unit filename="Engine/GLES2Render/Render.h" />
 		<Unit filename="Engine/Initialize/HelloInitializer.cpp" />
 		<Unit filename="Engine/Initialize/HelloInitializer.h" />
 		<Unit filename="Engine/Src/Anim/Anim.cpp" />
 		<Unit filename="Engine/Src/Anim/Anim.h" />
 		<Unit filename="Engine/Src/File/Load.h" />
+		<Unit filename="Engine/Src/Geom/Mesh.cpp" />
+		<Unit filename="Engine/Src/Geom/Mesh.h" />
 		<Unit filename="Engine/Src/Geom/Quad.cpp" />
 		<Unit filename="Engine/Src/Geom/Quad.h" />
 		<Unit filename="Engine/Src/Image/Mapping.cpp" />

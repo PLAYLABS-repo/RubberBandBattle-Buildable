@@ -7,7 +7,8 @@ creation time: 9/08/2026
 #pragma once
 
 #include "Engine/dependencies/include.h"
-#include "Math/Vec2.h"
+#include "Math/Vector.h"
+#include "Geom/Quad.h"
 
 namespace Absolut
 {
@@ -132,6 +133,26 @@ public:
 
 
     // =================================================
+    // ANCHOR (WORLD or SCREEN)
+    //
+    // Determines whether this animator's quads are
+    // affected by camera pan/zoom/rotation. SCREEN is
+    // for HUD/UI instances that should stay fixed on
+    // screen regardless of the camera.
+    // =================================================
+
+    void AnchorTo(QuadSpace space)
+    {
+        Anchor = space;
+    }
+
+    QuadSpace GetAnchor() const
+    {
+        return Anchor;
+    }
+
+
+    // =================================================
     // LOAD
     // =================================================
 
@@ -186,7 +207,9 @@ public:
     void Draw(
         Image* img,
         Atlas* atlas,
-        Camera& cam
+        Camera& cam,
+        int screenWidth  = 1280,
+        int screenHeight = 720
     );
 
 
@@ -247,6 +270,13 @@ private:
     bool Looping = true;
 
     bool Finished = false;
+
+
+    // =================================================
+    // ANCHOR STATE
+    // =================================================
+
+    QuadSpace Anchor = WORLD;
 
 
     // =================================================

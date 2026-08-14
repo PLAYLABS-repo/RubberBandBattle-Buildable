@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1786543794 source:c:\developmentfiles\absolutengine\main.cpp
+1786712287 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	<chrono>
@@ -19,20 +19,18 @@
 	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Anim/Anim.h"
 
-1786271413 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
+1786700095 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
 
 1786273554 c:\developmentfiles\absolutengine\\engine\src\log\log.h
 	"Engine/dependencies/include.h"
 
-1786531831 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
+1786708442 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
 	<algorithm>
 	<iostream>
 	<windows.h>
-	<GL/gl.h>
-	<GL/glext.h>
 	<fstream>
 	<string>
 	<iterator>
@@ -42,6 +40,7 @@
 	"json.hpp"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
+	"tiny_gltf.h"
 
 1512590989 c:\mingw\include\stdio.h
 	<_mingw.h>
@@ -368,7 +367,7 @@
 1512591001 c:\mingw\include\gl\glext.h
 	<windows.h>
 
-1786541863 c:\developmentfiles\absolutengine\\engine\src\window\window.h
+1786543906 c:\developmentfiles\absolutengine\\engine\src\window\window.h
 	"Engine/dependencies/include.h"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
@@ -380,8 +379,9 @@
 
 1786273669 c:\developmentfiles\absolutengine\\engine\src\file\load.h
 
-1786541784 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
+1786705006 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
+	"Engine/Src/Math/Vector.h"
 
 1786273699 c:\developmentfiles\absolutengine\\engine\src\input\inputkeyboard.h
 	"Engine/dependencies/include.h"
@@ -635,19 +635,21 @@
 1786282951 c:\developmentfiles\absolutengine\engine\src\image\mapping.h
 	"Engine/dependencies/include.h"
 
-1786542028 source:c:\developmentfiles\absolutengine\engine\src\geom\quad.cpp
+1786712524 source:c:\developmentfiles\absolutengine\engine\src\geom\quad.cpp
 	"Quad.h"
 	<GLES2/gl2.h>
+	"Engine/GLES2Render/CameraTransform.h"
 	<cmath>
 	<cstdio>
 
-1786541784 c:\developmentfiles\absolutengine\engine\src\geom\quad.h
+1786705006 c:\developmentfiles\absolutengine\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
+	"Engine/Src/Math/Vector.h"
 
 1786282951 c:\developmentfiles\absolutengine\\engine\src\image\mapping.h
 	"Engine/dependencies/include.h"
 
-1786541791 source:c:\developmentfiles\absolutengine\engine\src\anim\anim.cpp
+1786711960 source:c:\developmentfiles\absolutengine\engine\src\anim\anim.cpp
 	"Anim/Anim.h"
 	"Image/Texture.h"
 	"Image/Mapping.h"
@@ -657,15 +659,17 @@
 	<cmath>
 	<fstream>
 
-1786538616 c:\developmentfiles\absolutengine\engine\src\anim\anim.h
+1786705027 c:\developmentfiles\absolutengine\engine\src\anim\anim.h
 	"Engine/dependencies/include.h"
-	"Math/Vec2.h"
+	"Math/Vector.h"
+	"Geom/Quad.h"
 
-1786271413 c:\developmentfiles\absolutengine\engine\src\math\vec2.h
+1786700095 c:\developmentfiles\absolutengine\engine\src\math\vec2.h
 
-1786538616 c:\developmentfiles\absolutengine\\engine\src\anim\anim.h
+1786705027 c:\developmentfiles\absolutengine\\engine\src\anim\anim.h
 	"Engine/dependencies/include.h"
-	"Math/Vec2.h"
+	"Math/Vector.h"
+	"Geom/Quad.h"
 
 1786271413 c:\developmentfiles\absolutengine\engine\dependencies\json.hpp
 	<algorithm>
@@ -859,14 +863,13 @@
 	<any>
 	<string_view>
 
-1786532565 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
+1786710139 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
 
-1786358327 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
+1786701506 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1786541636 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
-	"Engine/Src/Math/Vec2.h"
+1786709494 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -878,6 +881,9 @@
 	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Anim/Anim.h"
 	"Engine/Src/Input/InputMouse.h"
+	"Engine/Src/Math/Vector.h"
+	"Geom/Mesh.h"
+	"Engine/GLES2Render/CameraTransform.h"
 
 1786271724 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
@@ -896,7 +902,7 @@
 1786532599 source:c:\developmentfiles\absolutengine\engine\src\window\window.cpp
 	"Window.h"
 
-1786541863 c:\developmentfiles\absolutengine\engine\src\window\window.h
+1786543906 c:\developmentfiles\absolutengine\engine\src\window\window.h
 	"Engine/dependencies/include.h"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
@@ -1077,8 +1083,70 @@
 	<windows.h>
 	<KHR/khrplatform.h>
 
-1786273518 c:\developmentfiles\absolutengine\\engine\gles2render\render.h
+1786711234 c:\developmentfiles\absolutengine\\engine\gles2render\render.h
 	"Engine/dependencies/include.h"
 
-1786271412 c:\developmentfiles\absolutengine\\engine\gles2render\cameratransform.h
+1786707869 c:\developmentfiles\absolutengine\\engine\gles2render\cameratransform.h
+	<cmath>
+	"Math/Vector.h"
+
+1786700095 c:\developmentfiles\absolutengine\\engine\src\math\vector.h
+
+1786700095 c:\developmentfiles\absolutengine\engine\src\math\vector.h
+
+1786704516 source:c:\developmentfiles\absolutengine\engine\gles2render\cameratransform.cpp
+
+1786704511 c:\developmentfiles\absolutengine\engine\gles2render\cameratransform.h
+	<cmath>
+	"Math/Vector.h"
+
+1786708399 c:\developmentfiles\absolutengine\\engine\dependencies\tiny_gltf.h
+	<array>
+	<cassert>
+	<cmath>
+	<cstdint>
+	<cstdlib>
+	<cstring>
+	<functional>
+	<limits>
+	<map>
+	<string>
+	<utility>
+	<vector>
+	<android/asset_manager.h>
+	<algorithm>
+	<sys/stat.h>
+	<cstdio>
+	<fstream>
+	<sstream>
+	"tinygltf_json.h"
+	"json.hpp"
+	"document.h"
+	"prettywriter.h"
+	"rapidjson.h"
+	"stringbuffer.h"
+	"writer.h"
+	"draco/compression/decode.h"
+	"draco/core/decoder_buffer.h"
+	"stb_image.h"
+	"stb_image_write.h"
+	<Windows.h>
+	<windows.h>
+	<fcntl.h>
+	<ext/stdio_filebuf.h>
+	"TargetConditionals.h"
+
+1786708344 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+	"Mesh.h"
+	<GLES2/gl2.h>
+	"Engine/GLES2Render/CameraTransform.h"
+	<cmath>
+	<cstdio>
+	<algorithm>
+
+1786708503 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+	<string>
+	<vector>
+	"Engine/dependencies/include.h"
+	"Math/Vector.h"
 

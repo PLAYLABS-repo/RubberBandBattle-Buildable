@@ -1,6 +1,6 @@
 #pragma once
 //Engine includes
-#include "Engine/Src/Math/Vec2.h"
+
 #include "Engine/Src/Log/Log.h"
 #include "Engine/Src/Window/Window.h"
 #include "Engine/GLES2Render/Render.h"
@@ -13,3 +13,6 @@
 #include "Engine/Src/Anim/Anim.h"
 #include "Engine/Src/Input/InputMouse.h"
 //#include "Engine/Src/Sound/Sound.hpp"
+#include "Engine/Src/Math/Vector.h"
+#include "Geom/Mesh.h"
+#include "Engine/GLES2Render/CameraTransform.h"

@@ -1,6 +1,7 @@
 #include "Quad.h"
 
 #include <GLES2/gl2.h>
+#include "Engine/GLES2Render/CameraTransform.h"
 
 #include <cmath>
 #include <cstdio>
@@ -401,6 +402,31 @@ static void Rotate(
 
 
 // ============================================================
+// ANCHOR
+// ============================================================
+
+void Quad::AnchorTo(
+    QuadSpace from,
+    QuadSpace to)
+{
+    anchorFrom = from;
+    anchorTo   = to;
+}
+
+
+QuadSpace Quad::GetAnchorFrom() const
+{
+    return anchorFrom;
+}
+
+
+QuadSpace Quad::GetAnchorTo() const
+{
+    return anchorTo;
+}
+
+
+// ============================================================
 // DRAW
 // ============================================================
 
@@ -504,35 +530,48 @@ void Quad::draw()
 
     // --------------------------------------------------------
     // PROJECTION
+    //
+    // WORLD-anchored quads use the camera's current
+    // projection (published by Camera::apply() into
+    // Absolut::ActiveProjection - includes pan/zoom/rotation).
+    //
+    // SCREEN-anchored quads (HUD/UI) always use a fixed
+    // screen-space ortho and ignore the camera entirely.
     // --------------------------------------------------------
 
-    float projection[16];
+    float screenProjection[16];
 
     float left   = 0.0f;
     float right  = 1280.0f;
     float top    = 0.0f;
     float bottom = 720.0f;
 
-    Identity(projection);
+    Identity(screenProjection);
 
-    projection[0] =
+    screenProjection[0] =
         2.0f /
         (right - left);
 
-    projection[5] =
+    screenProjection[5] =
         2.0f /
         (top - bottom);
 
-    projection[10] =
+    screenProjection[10] =
         -1.0f;
 
-    projection[12] =
+    screenProjection[12] =
         -(right + left) /
         (right - left);
 
-    projection[13] =
+    screenProjection[13] =
         -(top + bottom) /
         (top - bottom);
+
+
+    const float* projection =
+        (GetAnchorFrom() == WORLD)
+        ? Absolut::ActiveProjection
+        : screenProjection;
 
 
     // --------------------------------------------------------

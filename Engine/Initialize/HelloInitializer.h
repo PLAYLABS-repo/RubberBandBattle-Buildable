@@ -1,16 +1,19 @@
-
-#include "Engine/dependencies/engineincludes.h"
 #pragma once
 
+#include "Engine/dependencies/engineincludes.h"
 
-namespace Absolut {
+namespace Absolut
+{
+
 extern Window ScenePreview;
- extern Camera SceneCamera;
-  extern float currentTime;
+extern Camera SceneCamera;
 
-
+extern float currentTime;
 
 void HelloWorldInit();
+
 void SwapWindow(Camera& camera);
+
 int EndProcess();
+
 }

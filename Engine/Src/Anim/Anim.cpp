@@ -943,11 +943,11 @@ void Animator::Update(float dt)
 void Animator::Draw(
     Image* img,
     Atlas* atlas,
-    Camera& cam
+    Camera& cam,
+    int screenWidth,
+    int screenHeight
 )
 {
-    (void)cam;
-
     if (!ActiveAnim)
         return;
 
@@ -961,11 +961,20 @@ void Animator::Draw(
         GL_ONE_MINUS_SRC_ALPHA
     );
 
-    glColor4f(
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f
+    // --------------------------------------------------------
+    // Publish the camera's current projection into
+    // Absolut::ActiveProjection. Only WORLD-anchored quads
+    // (see Quad::draw) actually use it - SCREEN-anchored
+    // (HUD) sprites ignore this and stay fixed.
+    //
+    // NOTE: if Camera::apply() is already called once per
+    // frame elsewhere in the render loop, remove this call
+    // here to avoid redoing it per-animator.
+    // --------------------------------------------------------
+
+    cam.apply(
+        screenWidth,
+        screenHeight
     );
 
     Vec2 rootPos =
@@ -1027,8 +1036,8 @@ void Animator::DrawSprite(
 
     q.texture = img->Texture;
 
-    q.x = pos.x + bitmapOff.x * scale.x;
-    q.y = pos.y + bitmapOff.y * scale.y;
+ q.x = pos.x + bitmapOff.x * scale.x;
+q.y = pos.y + bitmapOff.y * scale.y;
 
     q.w = fr.w * scale.x;
     q.h = fr.h * scale.y;
@@ -1037,6 +1046,17 @@ void Animator::DrawSprite(
     q.PivotY = pivot.y;
 
     q.Rotation = rotRad * (180.0f / 3.14159265f);
+
+    // --------------------------------------------------------
+    // ANCHOR
+    //
+    // All quads produced by this animator share its space.
+    // A HUD-anchored Animator (e.g. UI icon) keeps its screen
+    // position fixed regardless of camera; a WORLD one pans/
+    // zooms/rotates with the camera.
+    // --------------------------------------------------------
+
+    q.AnchorTo(Anchor, Anchor);
 
     if (img->width > 0 && img->height > 0)
     {
@@ -1311,4 +1331,4 @@ void Animator::DrawAnim(
         }
     }
 }
-} // namespace Absolut21`
+} // namespace Absolut

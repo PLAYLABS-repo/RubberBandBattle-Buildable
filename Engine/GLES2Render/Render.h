@@ -7,7 +7,8 @@ namespace Absolut{
 
  inline void Clear(float r, float g, float b, float transparency){
      glClearColor( r,  g , b, transparency);
-     glClear(GL_COLOR_BUFFER_BIT);
+   glClearDepthf(1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
  }
 
