@@ -320,6 +320,7 @@ Mesh::Mesh(Mesh&& other) noexcept
     r = other.r; g = other.g; b = other.b;
     texture      = other.texture;
     useLighting  = other.useLighting;
+    enableCulling = other.enableCulling;
 
     other.vbo = 0;
     other.ibo = 0;
@@ -345,6 +346,7 @@ Mesh& Mesh::operator=(Mesh&& other) noexcept
     r = other.r; g = other.g; b = other.b;
     texture      = other.texture;
     useLighting  = other.useLighting;
+    enableCulling = other.enableCulling;
 
     other.vbo = 0;
     other.ibo = 0;
@@ -447,6 +449,29 @@ void Mesh::draw()
 
     glEnable(GL_DEPTH_TEST);
 
+    // ----------------------------------------------------------
+    // CULLING
+    //
+    // All procedural primitives (AddQuad/AddTri and the CreateX
+    // factories below) are wound CCW as seen from the outward
+    // normal, so GL_BACK + GL_CCW is correct for them. Meshes
+    // loaded via LoadFromGLTF() aren't guaranteed to follow that
+    // convention - if a loaded model disappears or looks inside
+    // out, set enableCulling = false on that instance rather than
+    // assuming this code is wrong.
+    // ----------------------------------------------------------
+
+    if (enableCulling)
+    {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+    }
+    else
+    {
+        glDisable(GL_CULL_FACE);
+    }
+
     if (hasTexture)
     {
         glEnable(GL_BLEND);
@@ -513,6 +538,10 @@ void Mesh::draw()
 
     if (hasTexture)
         glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Don't leak culling state into whatever draws next (Quad,
+    // text, etc. may assume GL_CULL_FACE is off).
+    glDisable(GL_CULL_FACE);
 
     glUseProgram(0);
 }

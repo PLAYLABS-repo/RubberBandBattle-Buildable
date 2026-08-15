@@ -71,18 +71,7 @@ public:
         float depth = 1.0f
     );
 
-    // --------------------------------------------------------
-    // GLTF LOADING (tinygltf)
-    //
-    // Loads the first primitive of the first mesh found in the
-    // file. Picks .gltf (JSON+text) vs .glb (binary) based on
-    // the file extension. Returns false and leaves this Mesh
-    // untouched on failure - see stderr for tinygltf's error
-    // string. Vertex indices are stored as unsigned short to
-    // match GLES2's glDrawElements limits, so source meshes
-    // over 65535 vertices will fail to load; split those in
-    // your DCC/export step first.
-    // --------------------------------------------------------
+
 
     bool LoadFromGLTF(const std::string& path);
 
@@ -101,6 +90,14 @@ public:
     float r = 1.0f, g = 1.0f, b = 1.0f;
     GLuint texture = 0;      // 0 = untextured, falls back to r/g/b
     bool useLighting = true; // cheap fixed-direction diffuse, see Mesh.cpp
+
+    // Backface culling (GL_BACK, CCW front face). All procedural
+    // primitives below (CreateCube/CreatePyramid/CreateCylinder/
+    // CreateSphere/CreatePlane) are wound CCW as seen from the
+    // outward normal, so this is safe to leave on by default.
+    // Turn off per-mesh if a loaded model (LoadFromGLTF) has
+    // inconsistent winding and ends up disappearing/inside-out.
+    bool enableCulling = true;
 
     // Always draws in WORLD space against Absolut::ActiveProjection
     // (see CameraTransform.h) - unlike Quad, Mesh has no SCREEN anchor.

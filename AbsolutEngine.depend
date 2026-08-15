@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1786712287 source:c:\developmentfiles\absolutengine\main.cpp
+1786793573 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	<chrono>
@@ -885,7 +885,7 @@
 	"Geom/Mesh.h"
 	"Engine/GLES2Render/CameraTransform.h"
 
-1786271724 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
+1786793399 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
@@ -1136,7 +1136,7 @@
 	<ext/stdio_filebuf.h>
 	"TargetConditionals.h"
 
-1786708344 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+1786798608 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
 	"Mesh.h"
 	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
@@ -1144,9 +1144,16 @@
 	<cstdio>
 	<algorithm>
 
-1786708503 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+1786798598 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
 	<string>
 	<vector>
 	"Engine/dependencies/include.h"
 	"Math/Vector.h"
+
+1786793449 source:c:\developmentfiles\absolutengine\engine\src\input\inputmouse.cpp
+	"InputMouse.h"
+	<windowsx.h>
+
+1786793399 c:\developmentfiles\absolutengine\engine\src\input\inputmouse.h
+	<windows.h>
 
