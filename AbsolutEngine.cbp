@@ -74,8 +74,6 @@
 			<Add library="../../mesa3d-26.1.6-devel-mingw/lib/x64/libGLESv2.dll.a" />
 			<Add directory="../../mesa3d-26.1.6-devel-mingw/lib/x64" />
 		</Linker>
-		<Unit filename="Engine/GL2Render/CameraTransform.h" />
-		<Unit filename="Engine/GL2Render/Render.h" />
 		<Unit filename="Engine/GLES2Render/CameraTransform.h" />
 		<Unit filename="Engine/GLES2Render/Render.h" />
 		<Unit filename="Engine/Initialize/HelloInitializer.cpp" />
@@ -92,6 +90,7 @@
 		<Unit filename="Engine/Src/Image/Texture.cpp" />
 		<Unit filename="Engine/Src/Image/Texture.h" />
 		<Unit filename="Engine/Src/Input/InputKeyboard.h" />
+		<Unit filename="Engine/Src/Input/InputMouse.cpp" />
 		<Unit filename="Engine/Src/Input/InputMouse.h" />
 		<Unit filename="Engine/Src/Log/Log.h" />
 		<Unit filename="Engine/Src/Math/Vec2.h" />

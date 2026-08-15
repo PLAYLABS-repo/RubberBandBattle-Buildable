@@ -10,6 +10,7 @@ extern Camera SceneCamera;
 
 extern float currentTime;
 
+extern Audio AudioSystem;
 void HelloWorldInit();
 
 void SwapWindow(Camera& camera);

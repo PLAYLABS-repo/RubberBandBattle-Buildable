@@ -1,21 +1,19 @@
 #include "Engine/dependencies/include.h"
-namespace Absolut
-{
-    extern Image PlayerImg;
-    extern Atlas PlayerMap;
-    extern Animator PlayerAnim;
+namespace Absolut{
 
-
+     Absolut::Mesh myModel;
+     extern Absolut::Mesh cube = Absolut::Mesh::CreateCube(1.5f);
     inline bool InitAssets(){
-          PlayerImg.load("Resources/Skins/spritemap.png");
-          PlayerMap.load("Resources/Skins/spritemap.json");
-          PlayerAnim.Load("Resources/Skins/Animation.json");
+
+
+         Absolut::InitAssets();
+
+cube.position = {0, 0, 0};
+cube.rotation.y = 30.0f;
+cube.scale = {1, 1, 1};
+
           return true;
     }
 
-    inline bool FreeAssets(){
-    PlayerAnim.FreeAnim();
-    PlayerImg.Unload();
-    FreeAtlas(&PlayerMap);
-    }
+
 }

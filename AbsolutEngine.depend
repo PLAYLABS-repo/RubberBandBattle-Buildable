@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1786793573 source:c:\developmentfiles\absolutengine\main.cpp
+1786810342 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	<chrono>
@@ -863,13 +863,13 @@
 	<any>
 	<string_view>
 
-1786710139 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
+1786809161 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
 
-1786701506 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
+1786809197 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1786709494 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1786809015 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -881,6 +881,7 @@
 	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Anim/Anim.h"
 	"Engine/Src/Input/InputMouse.h"
+	"Engine/Src/Sound/Sound.hpp"
 	"Engine/Src/Math/Vector.h"
 	"Geom/Mesh.h"
 	"Engine/GLES2Render/CameraTransform.h"
@@ -890,7 +891,7 @@
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
 
-1786538082 c:\developmentfiles\absolutengine\gamescripts\init.h
+1786810387 c:\developmentfiles\absolutengine\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1786357897 c:\developmentfiles\absolutengine\gamescripts\deltatime.h
@@ -907,9 +908,8 @@
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 
-1786368202 c:\developmentfiles\absolutengine\\engine\src\sound\sound.hpp
+1786809573 c:\developmentfiles\absolutengine\\engine\src\sound\sound.hpp
 	"Engine/dependencies/miniaudio.h"
-	"Engine/dependencies/include.h"
 
 1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\miniaudio.h
 	<stddef.h>
@@ -1040,10 +1040,11 @@
 	<sys/types.h>
 	<limits.h>
 
-1786446864 source:c:\developmentfiles\absolutengine\engine\src\sound\sound.cpp
+1786809570 source:c:\developmentfiles\absolutengine\engine\src\sound\sound.cpp
+	"Engine/dependencies/miniaudio.h"
+	"Sound.hpp"
 
-1786367970 c:\developmentfiles\absolutengine\engine\src\sound\sound.hpp
-	"Engine/dependencies/include.h"
+1786809573 c:\developmentfiles\absolutengine\engine\src\sound\sound.hpp
 	"Engine/dependencies/miniaudio.h"
 
 1783492566 c:\mesa3d-26.1.6-devel-mingw\include\gles2\gl2.h
@@ -1136,7 +1137,7 @@
 	<ext/stdio_filebuf.h>
 	"TargetConditionals.h"
 
-1786798608 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+1786806489 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
 	"Mesh.h"
 	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
@@ -1144,7 +1145,7 @@
 	<cstdio>
 	<algorithm>
 
-1786798598 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+1786804005 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
 	<string>
 	<vector>
 	"Engine/dependencies/include.h"

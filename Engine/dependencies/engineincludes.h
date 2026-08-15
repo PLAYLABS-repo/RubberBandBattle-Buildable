@@ -12,7 +12,7 @@
 #include "Engine/Src/Image/Mapping.h"
 #include "Engine/Src/Anim/Anim.h"
 #include "Engine/Src/Input/InputMouse.h"
-//#include "Engine/Src/Sound/Sound.hpp"
+#include "Engine/Src/Sound/Sound.hpp"
 #include "Engine/Src/Math/Vector.h"
 #include "Geom/Mesh.h"
 #include "Engine/GLES2Render/CameraTransform.h"

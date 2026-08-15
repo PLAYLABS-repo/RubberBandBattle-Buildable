@@ -11,8 +11,8 @@ Absolut::Camera SceneCamera;
 
 
 
-
-
+extern Audio AudioSystem;
+  AudioSystem.Init();
     ScenePreview.create("ScenePreview", 1280, 720);
 
 
