@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1786810342 source:c:\developmentfiles\absolutengine\main.cpp
+1786856503 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	<chrono>
@@ -428,7 +428,7 @@
 	<string.h>
 	<string.h>
 
-1786542209 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
+1786811093 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
 	"Engine/dependencies/include.h"
 	"Texture.h"
 
@@ -891,7 +891,7 @@
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
 
-1786810387 c:\developmentfiles\absolutengine\gamescripts\init.h
+1786810438 c:\developmentfiles\absolutengine\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1786357897 c:\developmentfiles\absolutengine\gamescripts\deltatime.h
@@ -1137,17 +1137,19 @@
 	<ext/stdio_filebuf.h>
 	"TargetConditionals.h"
 
-1786806489 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+1786857059 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
 	"Mesh.h"
 	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
 	<cmath>
 	<cstdio>
 	<algorithm>
+	<functional>
 
-1786804005 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+1786856997 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
 	<string>
 	<vector>
+	<memory>
 	"Engine/dependencies/include.h"
 	"Math/Vector.h"
 

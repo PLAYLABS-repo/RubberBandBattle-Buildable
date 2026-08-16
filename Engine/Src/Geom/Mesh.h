@@ -2,8 +2,15 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE
+// NOTE: stb_image (read) support is NOT disabled here, on purpose -
+// LoadFromGLTF() now decodes embedded/external glTF textures via
+// tinygltf, which uses stb_image.h under the hood. Make sure
+// stb_image.h is sitting next to tiny_gltf.h on your include path,
+// or texture loading will silently produce empty images.
 #include "Engine/dependencies/include.h"
 
 #include "Math/Vector.h"
@@ -15,11 +22,16 @@ namespace Absolut
 // MESH VERTEX
 //
 // Layout uploaded to the GPU for every Mesh, whether it came
-// from a procedural generator (CreateCube/CreatePyramid/etc)
-// or was loaded from a glTF file via LoadFromGLTF(). Matches
-// the aPosition/aNormal/aTexCoord attributes bound in Mesh.cpp.
+// from a procedural generator (CreateCube/CreatePyramid/etc),
+// was loaded from a glTF file via LoadFromGLTF(), or is a
+// skinned mesh being re-uploaded every frame. Matches the
+// aPosition/aNormal/aTexCoord attributes bound in Mesh.cpp.
+//
+// Skinning is done entirely on the CPU (see Mesh.cpp), so this
+// struct intentionally does NOT carry joint indices/weights -
+// those live in the separate, CPU-only SkinVertex struct below
+// and never touch the GPU.
 // ============================================================
-
 struct MeshVertex
 {
     float px, py, pz; // position
@@ -27,14 +39,15 @@ struct MeshVertex
     float u,  v;       // texcoord
 };
 
+
 class Mesh
 {
 public:
-
     Mesh() = default;
     ~Mesh();
 
-    // Owns GL buffer objects - move-only, no implicit copies.
+    // Owns GL buffer objects (and, if loaded from glTF, possibly a
+    // GL texture) - move-only, no implicit copies.
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
     Mesh(Mesh&& other) noexcept;
@@ -46,7 +59,6 @@ public:
     // All are centered on the local origin so position/rotate/
     // scale behave predictably. Sizes are in world units.
     // --------------------------------------------------------
-
     static Mesh CreateCube(float size = 1.0f);
 
     static Mesh CreatePyramid(
@@ -71,14 +83,20 @@ public:
         float depth = 1.0f
     );
 
-
-
+    // Loads mesh[0]/primitive[0] geometry from a .gltf/.glb file.
+    // If the primitive's material has a baseColorTexture, it is
+    // decoded and uploaded as a GL texture (owned by this Mesh,
+    // replacing whatever `texture` was previously set). If the
+    // node that references the mesh has a skin, joint weights and
+    // animation clips are loaded too - see GetAnimationCount() /
+    // SetAnimation() / UpdateAnimation() below. Skins with more
+    // than kMaxJoints joints are loaded as a static mesh instead
+    // (logged, not a hard failure).
     bool LoadFromGLTF(const std::string& path);
 
     // --------------------------------------------------------
     // TRANSFORM
     // --------------------------------------------------------
-
     Vec3 position = {0.0f, 0.0f, 0.0f};
     Vec3 rotation = {0.0f, 0.0f, 0.0f}; // degrees, applied X then Y then Z
     Vec3 scale    = {1.0f, 1.0f, 1.0f};
@@ -86,7 +104,6 @@ public:
     // --------------------------------------------------------
     // APPEARANCE
     // --------------------------------------------------------
-
     float r = 1.0f, g = 1.0f, b = 1.0f;
     GLuint texture = 0;      // 0 = untextured, falls back to r/g/b
     bool useLighting = true; // cheap fixed-direction diffuse, see Mesh.cpp
@@ -99,12 +116,42 @@ public:
     // inconsistent winding and ends up disappearing/inside-out.
     bool enableCulling = true;
 
+    // --------------------------------------------------------
+    // SKINNING / ANIMATION
+    //
+    // Only meaningful if LoadFromGLTF() found a skin (check
+    // GetAnimationCount() > 0). Skinning is computed on the CPU
+    // every UpdateAnimation() call and re-uploaded via
+    // glBufferSubData - deliberately, since GLES2 doesn't
+    // reliably give you enough vertex uniforms (spec minimum is
+    // 128 vec4 = ~32 mat4) or vertex texture fetch (spec allows
+    // zero vertex texture units) to do this on the GPU portably.
+    // Call UpdateAnimation() once per frame before draw().
+    // --------------------------------------------------------
+    static constexpr int kMaxJoints = 512;
+
+    int GetAnimationCount() const;
+    std::string GetAnimationName(int index) const;
+
+    // Switches the active clip and immediately samples frame 0,
+    // so the mesh doesn't render bind pose for a frame while
+    // waiting on the next UpdateAnimation(). Returns false (no-op)
+    // if this mesh has no skin or the index/name doesn't exist.
+    bool SetAnimation(int index, bool loop = true);
+    bool SetAnimation(const std::string& name, bool loop = true);
+
+    // Freezes on whatever pose is currently displayed.
+    void StopAnimation();
+
+    // Advances the active clip and re-skins the CPU vertex copy.
+    // No-op if there's no skin or no active clip.
+    void UpdateAnimation(float deltaSeconds);
+
     // Always draws in WORLD space against Absolut::ActiveProjection
     // (see CameraTransform.h) - unlike Quad, Mesh has no SCREEN anchor.
     void draw();
 
 private:
-
     std::vector<MeshVertex> vertices;
     std::vector<unsigned short> indices; // empty => glDrawArrays, no EBO
 
@@ -112,11 +159,68 @@ private:
     GLuint ibo = 0;
     bool uploaded = false;
 
+    // True once LoadFromGLTF() created `texture` itself (rather than
+    // the caller assigning an externally-owned GL texture) - only
+    // then does this Mesh delete it in releaseGL()/on destruction.
+    bool ownsTexture = false;
+
+    // ----------------------------------------------------------
+    // SKINNING (CPU)
+    //
+    // SkinVertex is intentionally separate from MeshVertex: it's
+    // CPU-only bookkeeping (never uploaded to the GPU), so keeping
+    // it out of MeshVertex means unskinned meshes/shaders/attribute
+    // layouts are completely untouched by any of this.
+    // ----------------------------------------------------------
+    struct SkinVertex
+    {
+        unsigned short joints[4] = {0, 0, 0, 0};
+        float weights[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    };
+
+    // Full node hierarchy + joints + animation clips for this mesh's
+    // skin. Defined entirely in Mesh.cpp (pimpl) so this header
+    // doesn't need to know anything about glTF/animation internals.
+    // Null == "this mesh has no skin, cannot be animated".
+    //
+    // Uses a custom deleter instead of std::unique_ptr<SkinData>'s
+    // default one: std::default_delete<SkinData>::operator() is a
+    // template, and instantiating it requires SkinData to be a
+    // complete type AT THE INSTANTIATION SITE - which can be ANY
+    // translation unit that only includes this header and happens
+    // to implicitly instantiate Mesh's destructor/move-ops (e.g. a
+    // std::vector<Mesh>, or some other class holding a Mesh member
+    // and relying on its own implicit destructor). That's exactly
+    // how you get "invalid application of 'sizeof' to incomplete
+    // type SkinData" pointing into <bits/unique_ptr.h> instead of
+    // into whatever file actually needed fixing.
+    //
+    // SkinDataDeleter::operator() below is an ordinary, non-template
+    // member function - declared here, defined in Mesh.cpp where
+    // SkinData is complete. Calling it from any other TU is just a
+    // normal out-of-line function call, so no sizeof(SkinData) check
+    // is ever instantiated outside Mesh.cpp, no matter where skin's
+    // destructor ends up being invoked from.
+    struct SkinData;
+    struct SkinDataDeleter
+    {
+        void operator()(SkinData* p) const;
+    };
+    std::unique_ptr<SkinData, SkinDataDeleter> skin;
+
+    std::vector<MeshVertex> bindPoseVertices; // unskinned copy; only populated when `skin` is set
+    std::vector<SkinVertex> skinVerts;        // parallel to bindPoseVertices
+
+    bool vertexBufferIsDynamic = false; // GL_DYNAMIC_DRAW (skinned) vs GL_STATIC_DRAW
+    bool verticesDirty = false;         // set by ApplySkinningCPU(), consumed by draw()
+
+    void ApplySkinningCPU(); // blends bindPoseVertices+skinVerts -> vertices using skin's joint matrices
+
     void upload();
+    void updateDynamicVertexBuffer(); // glBufferSubData path, used every frame for skinned meshes
     void releaseGL();
 
     static Mesh FromVertexList(std::vector<MeshVertex> verts);
-
     static Mesh FromIndexedList(
         std::vector<MeshVertex> verts,
         std::vector<unsigned short> idx
