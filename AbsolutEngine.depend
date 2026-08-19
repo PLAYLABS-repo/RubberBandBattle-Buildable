@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1786856503 source:c:\developmentfiles\absolutengine\main.cpp
+1787138743 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	<chrono>
@@ -24,7 +24,7 @@
 1786273554 c:\developmentfiles\absolutengine\\engine\src\log\log.h
 	"Engine/dependencies/include.h"
 
-1786708442 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
+1787138151 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -35,9 +35,9 @@
 	<string>
 	<iterator>
 	<chrono>
-	"stb_image.h"
-	"stb_truetype.h"
+	<FreeImage.h>
 	"json.hpp"
+	"stb_truetype.h"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 	"tiny_gltf.h"
@@ -74,13 +74,23 @@
 	<_mingw.h>
 	<stddef.h>
 
-1786173005 c:\developmentfiles\absolutengine\engine\dependencies\include.h
+1787138151 c:\developmentfiles\absolutengine\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
 	<algorithm>
 	<iostream>
-	<include.h>
+	<windows.h>
+	<fstream>
+	<string>
+	<iterator>
+	<chrono>
+	<FreeImage.h>
+	"json.hpp"
+	"stb_truetype.h"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
+	"tiny_gltf.h"
 
 1512591001 c:\mingw\include\windows.h
 	<winresrc.h>
@@ -428,9 +438,11 @@
 	<string.h>
 	<string.h>
 
-1786811093 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
+1787127529 source:c:\developmentfiles\absolutengine\engine\src\image\texture.cpp
 	"Engine/dependencies/include.h"
 	"Texture.h"
+	<stdio.h>
+	<vector>
 
 1786542172 c:\developmentfiles\absolutengine\engine\src\image\texture.h
 
@@ -863,13 +875,13 @@
 	<any>
 	<string_view>
 
-1786809161 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
+1787138675 source:c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
 
 1786809197 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1786809015 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1787138259 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -885,13 +897,15 @@
 	"Engine/Src/Math/Vector.h"
 	"Geom/Mesh.h"
 	"Engine/GLES2Render/CameraTransform.h"
+	"Geom/Box3.h"
+	"Engine/Src/Image/Font.h"
 
 1786793399 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
 
-1786810438 c:\developmentfiles\absolutengine\gamescripts\init.h
+1787138781 c:\developmentfiles\absolutengine\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1786357897 c:\developmentfiles\absolutengine\gamescripts\deltatime.h
@@ -1137,20 +1151,20 @@
 	<ext/stdio_filebuf.h>
 	"TargetConditionals.h"
 
-1786857059 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+1787133587 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
 	"Mesh.h"
-	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
 	<cmath>
 	<cstdio>
 	<algorithm>
 	<functional>
+	<utility>
 
-1786856997 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+1787129043 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+	"Engine/dependencies/include.h"
 	<string>
 	<vector>
 	<memory>
-	"Engine/dependencies/include.h"
 	"Math/Vector.h"
 
 1786793449 source:c:\developmentfiles\absolutengine\engine\src\input\inputmouse.cpp
@@ -1159,4 +1173,117 @@
 
 1786793399 c:\developmentfiles\absolutengine\engine\src\input\inputmouse.h
 	<windows.h>
+
+1787052255 c:\developmentfiles\absolutengine\engine\src\geom\box3.h
+	"include.h"
+	"Mesh.h"
+	"Math/Vector.h"
+
+1786271413 c:\developmentfiles\absolutengine\engine\dependencies\stb_image.h
+	"stb_image.h"
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
+
+1786271413 c:\developmentfiles\absolutengine\engine\dependencies\stb_truetype.h
+	"stb_truetype.h"
+	<stdio.h>
+	"stb_truetype.h"
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<string.h>
+	<string.h>
+
+1786708399 c:\developmentfiles\absolutengine\engine\dependencies\tiny_gltf.h
+	<array>
+	<cassert>
+	<cmath>
+	<cstdint>
+	<cstdlib>
+	<cstring>
+	<functional>
+	<limits>
+	<map>
+	<string>
+	<utility>
+	<vector>
+	<android/asset_manager.h>
+	<algorithm>
+	<sys/stat.h>
+	<cstdio>
+	<fstream>
+	<sstream>
+	"tinygltf_json.h"
+	"json.hpp"
+	"document.h"
+	"prettywriter.h"
+	"rapidjson.h"
+	"stringbuffer.h"
+	"writer.h"
+	"draco/compression/decode.h"
+	"draco/core/decoder_buffer.h"
+	"stb_image.h"
+	"stb_image_write.h"
+	<Windows.h>
+	<windows.h>
+	<fcntl.h>
+	<ext/stdio_filebuf.h>
+	"TargetConditionals.h"
+
+1787126647 c:\mingw\bin\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1787138119 source:c:\developmentfiles\absolutengine\engine\src\image\font.cpp
+	"Font.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<vector>
+
+1783492566 c:\mingw\include\gles2\gl2.h
+	<GLES2/gl2platform.h>
+	<KHR/khrplatform.h>
+
+1783492566 c:\mingw\include\gles2\gl2platform.h
+	<KHR/khrplatform.h>
+
+1783492566 c:\mingw\include\khr\khrplatform.h
+	<stdint.h>
+	<inttypes.h>
+	<stdint.h>
+
+1783492566 c:\mingw\include\egl\egl.h
+	<EGL/eglplatform.h>
+	<KHR/khrplatform.h>
+	<EGL/eglplatform.h>
+
+1783492566 c:\mingw\include\egl\eglplatform.h
+	<KHR/khrplatform.h>
+	<windows.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<kernel/image.h>
+
+1787138118 c:\developmentfiles\absolutengine\engine\src\image\font.h
+	"Engine/dependencies/include.h"
+
+1787138118 c:\developmentfiles\absolutengine\\engine\src\image\font.h
+	"Engine/dependencies/include.h"
 

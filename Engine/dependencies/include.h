@@ -13,11 +13,12 @@
 #include <iterator>
 #include <chrono>
 
-#include "stb_image.h"
 
-#include "stb_truetype.h"
+#include <FreeImage.h>
+
+
 #include "json.hpp"
-
+#include "stb_truetype.h"
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include "tiny_gltf.h"

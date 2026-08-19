@@ -16,3 +16,5 @@
 #include "Engine/Src/Math/Vector.h"
 #include "Geom/Mesh.h"
 #include "Engine/GLES2Render/CameraTransform.h"
+#include "Geom/Box3.h"
+#include "Engine/Src/Image/Font.h"

@@ -1,19 +1,11 @@
 #pragma once
 
+#include "Engine/dependencies/include.h"
 #include <string>
 #include <vector>
 #include <memory>
 
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-// NOTE: stb_image (read) support is NOT disabled here, on purpose -
-// LoadFromGLTF() now decodes embedded/external glTF textures via
-// tinygltf, which uses stb_image.h under the hood. Make sure
-// stb_image.h is sitting next to tiny_gltf.h on your include path,
-// or texture loading will silently produce empty images.
-#include "Engine/dependencies/include.h"
-
-#include "Math/Vector.h"
+#include "Math/Vector.h"   // Vec3
 
 namespace Absolut
 {
@@ -139,6 +131,45 @@ public:
     // if this mesh has no skin or the index/name doesn't exist.
     bool SetAnimation(int index, bool loop = true);
     bool SetAnimation(const std::string& name, bool loop = true);
+
+    // Plays a sub-range of a clip, addressed by FRAME NUMBER rather
+    // than seconds. frameStart/frameEnd are converted to seconds
+    // internally as frame / fps - fps does NOT change playback
+    // speed, it only tells this call how to interpret the frame
+    // numbers. Match it to whatever your DCC tool (Blender/Maya)
+    // used at export (commonly 24 or 30 fps - check your export
+    // settings if the range looks off).
+    //
+    // Pass frameEnd = -1 to play to the end of the clip's full
+    // duration.
+    //
+    // repeatTimes:
+    //   <= 0  -> loop the range forever (same as SetAnimation(..., true))
+    //    N>0  -> play the range exactly N times, then freeze on its
+    //            last frame - check IsAnimationFinished()
+    //
+    // Returns false (no-op) if this mesh has no skin, the clip
+    // name/index doesn't exist, or fps <= 0.
+    bool PlayAnimation(
+        int frameStart,
+        int frameEnd,
+        const std::string& animName,
+        int repeatTimes = 0,
+        float fps = 30.0f
+    );
+
+    bool PlayAnimation(
+        int frameStart,
+        int frameEnd,
+        int index,
+        int repeatTimes = 0,
+        float fps = 30.0f
+    );
+
+    // True once a PlayAnimation()/SetAnimation(..., false) call has
+    // played out all its repeats and frozen on the last frame of
+    // its range. Always false for looping playback.
+    bool IsAnimationFinished() const;
 
     // Freezes on whatever pose is currently displayed.
     void StopAnimation();

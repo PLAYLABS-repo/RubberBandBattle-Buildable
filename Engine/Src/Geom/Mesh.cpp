@@ -1,13 +1,26 @@
-#include "Mesh.h"
+// These MUST be defined before the first #include in this file.
+// Mesh.h -> Engine/dependencies/include.h -> tiny_gltf.h, and
+// tiny_gltf.h is include-guarded - whichever inclusion happens
+// first in this translation unit is the only one that matters.
+// If TINYGLTF_IMPLEMENTATION isn't set yet when that first
+// inclusion happens, every tinygltf function ends up declared
+// but never defined, and the link fails.
+#define TINYGLTF_NO_STB_IMAGE       // FreeImage decodes images now, not stb_image
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_IMPLEMENTATION
 
-#include <GLES2/gl2.h>
+#include "Mesh.h"   // pulls in Engine/dependencies/include.h, which
+                     // includes windows.h, FreeImage.h, and tiny_gltf.h
+                     // in the right order already - nothing else needed here
+
+
 #include "Engine/GLES2Render/CameraTransform.h"
 
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
 #include <functional>
-
+#include <utility>
 // ----------------------------------------------------------------
 // TINYGLTF
 //
@@ -19,11 +32,12 @@
 // Geometry (positions/normals/uvs/indices), skin data (joint
 // indices/weights/inverse-bind matrices), animation clips, AND
 // base-color textures are all read out of glTF files here.
-// STB_IMAGE_WRITE is switched off (we never write images out),
-// but STB_IMAGE (reading) is NOT switched off, since textures are
-// decoded through it - stb_image.h needs to be sitting next to
-// tiny_gltf.h on your include path. You still need tiny_gltf.h and
-// its json.hpp (nlohmann/json) too.
+// Images are decoded through FreeImage (see LoadImageDataWithFreeImage
+// below), NOT stb_image - TINYGLTF_NO_STB_IMAGE is defined above,
+// so tinygltf has no built-in decoder and MUST be given a custom
+// LoadImageDataFunction via TinyGLTF::SetImageLoader() before any
+// Load*() call, or it fails immediately with "No LoadImageData
+// callback specified."
 // ----------------------------------------------------------------
 
 
@@ -491,7 +505,15 @@ struct Mesh::SkinData
 
     int activeClip = -1;
     float clipTime = 0.0f;
-    bool looping = true;
+
+    // Sub-range playback (set by SetAnimation()/PlayAnimation()).
+    // rangeEnd defaults to the clip's full duration; playsRemaining
+    // < 0 means "loop forever", otherwise it counts down and
+    // finished latches true once it hits zero.
+    float rangeStart = 0.0f;
+    float rangeEnd = 0.0f;
+    int playsRemaining = -1;
+    bool finished = false;
 
     std::vector<float> jointMatrices; // joints.size() * 16 floats
 
@@ -1157,6 +1179,112 @@ static bool EndsWith(const std::string& value, const std::string& suffix)
 }
 
 
+// ------------------------------------------------------------
+// Custom tinygltf image loader, backed by FreeImage instead of
+// stb_image (TINYGLTF_NO_STB_IMAGE is defined at the top of this
+// file, so tinygltf has no built-in decoder of its own). Decodes
+// embedded/external glTF images into RGBA8, top-to-bottom, which
+// is what tinygltf::Image::image / CreateGLTextureFromImage()
+// below both expect.
+//
+// Registered via loader.SetImageLoader(...) in LoadFromGLTF() -
+// without that call, tinygltf has no way to decode images and
+// LoadBinaryFromFile()/LoadASCIIFromFile() fail immediately with
+// "No LoadImageData callback specified." the moment the glTF/glb
+// references any image.
+// ------------------------------------------------------------
+static bool LoadImageDataWithFreeImage(
+    tinygltf::Image* image,
+    const int /*image_idx*/,
+    std::string* err,
+    std::string* /*warn*/,
+    int /*req_width*/, int /*req_height*/,
+    const unsigned char* bytes,
+    int size,
+    void* /*user_data*/)
+{
+    FIMEMORY* mem = FreeImage_OpenMemory(
+        const_cast<BYTE*>(bytes),
+        static_cast<DWORD>(size)
+    );
+
+    if (!mem)
+    {
+        if (err) *err += "FreeImage_OpenMemory failed\n";
+        return false;
+    }
+
+    FREE_IMAGE_FORMAT fmt = FreeImage_GetFileTypeFromMemory(mem, 0);
+
+    if (fmt == FIF_UNKNOWN)
+    {
+        FreeImage_CloseMemory(mem);
+        if (err) *err += "FreeImage: unknown image format in glTF buffer\n";
+        return false;
+    }
+
+    FIBITMAP* bitmap = FreeImage_LoadFromMemory(fmt, mem, 0);
+    FreeImage_CloseMemory(mem);
+
+    if (!bitmap)
+    {
+        if (err) *err += "FreeImage_LoadFromMemory failed\n";
+        return false;
+    }
+
+    FIBITMAP* converted = FreeImage_ConvertTo32Bits(bitmap);
+    FreeImage_Unload(bitmap);
+
+    if (!converted)
+    {
+        if (err) *err += "FreeImage_ConvertTo32Bits failed\n";
+        return false;
+    }
+
+    int width  = (int)FreeImage_GetWidth(converted);
+    int height = (int)FreeImage_GetHeight(converted);
+    BYTE* bits = FreeImage_GetBits(converted);
+    unsigned int pitch = FreeImage_GetPitch(converted);
+
+    if (!bits || width <= 0 || height <= 0)
+    {
+        FreeImage_Unload(converted);
+        if (err) *err += "FreeImage: decoded image has no pixel data\n";
+        return false;
+    }
+
+    image->width     = width;
+    image->height    = height;
+    image->component = 4;
+    image->bits       = 8;
+    image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+    image->image.resize(width * height * 4);
+
+    // FreeImage is BGRA and stores bottom-to-top; flip to top-to-bottom
+    // RGBA to match what tinygltf/OpenGL callers expect.
+    for (int y = 0; y < height; ++y)
+    {
+        BYTE* srcRow = bits + y * pitch;
+        unsigned char* dstRow =
+            image->image.data() + (height - 1 - y) * width * 4;
+
+        for (int x = 0; x < width; ++x)
+        {
+            BYTE* p = srcRow + x * 4;
+            unsigned char* o = dstRow + x * 4;
+
+            o[0] = p[FI_RGBA_RED];
+            o[1] = p[FI_RGBA_GREEN];
+            o[2] = p[FI_RGBA_BLUE];
+            o[3] = p[FI_RGBA_ALPHA];
+        }
+    }
+
+    FreeImage_Unload(converted);
+    return true;
+}
+
+
 // Reads a glTF accessor's data into out, one component set per
 // element (e.g. 3 floats per vec3). Only handles the component
 // types tinygltf's Meshes/Blender/Maya exporters actually emit
@@ -1363,15 +1491,15 @@ static bool ReadWeightsAccessor(
 
 
 // Decodes a glTF image (already loaded into `image.image` as raw
-// pixels by tinygltf/stb_image) into a new GL texture. Returns 0
-// on failure - caller decides whether that's fatal.
+// pixels by tinygltf via LoadImageDataWithFreeImage above) into a
+// new GL texture. Returns 0 on failure - caller decides whether
+// that's fatal.
 static GLuint CreateGLTextureFromImage(const tinygltf::Image& image)
 {
     if (image.image.empty() || image.width <= 0 || image.height <= 0)
     {
         printf(
-            "Mesh::LoadFromGLTF: baseColorTexture has no decoded pixel data - "
-            "is stb_image.h on the include path next to tiny_gltf.h?\n"
+            "Mesh::LoadFromGLTF: baseColorTexture has no decoded pixel data\n"
         );
         return 0;
     }
@@ -1641,9 +1769,12 @@ bool Mesh::SetAnimation(int index, bool loop)
     if (!skin || index < 0 || index >= (int)skin->clips.size())
         return false;
 
-    skin->activeClip = index;
-    skin->clipTime = 0.0f;
-    skin->looping = loop;
+    skin->activeClip     = index;
+    skin->rangeStart      = 0.0f;
+    skin->rangeEnd        = skin->clips[index].duration;
+    skin->clipTime        = 0.0f;
+    skin->playsRemaining  = loop ? -1 : 1;
+    skin->finished         = false;
 
     // Snap to frame 0 immediately so the mesh doesn't render bind
     // pose for a frame while waiting on the caller's next
@@ -1669,6 +1800,62 @@ bool Mesh::SetAnimation(const std::string& name, bool loop)
 }
 
 
+bool Mesh::PlayAnimation(
+    int frameStart, int frameEnd,
+    const std::string& animName,
+    int repeatTimes, float fps)
+{
+    if (!skin)
+        return false;
+
+    for (size_t i = 0; i < skin->clips.size(); ++i)
+        if (skin->clips[i].name == animName)
+            return PlayAnimation(frameStart, frameEnd, (int)i, repeatTimes, fps);
+
+    return false;
+}
+
+
+bool Mesh::PlayAnimation(
+    int frameStart, int frameEnd,
+    int index,
+    int repeatTimes, float fps)
+{
+    if (!skin || index < 0 || index >= (int)skin->clips.size() || fps <= 0.0f)
+        return false;
+
+    float duration = skin->clips[index].duration;
+
+    float startTime = (float)frameStart / fps;
+    float endTime = (frameEnd < 0) ? duration : ((float)frameEnd / fps);
+
+    if (startTime > endTime)
+        std::swap(startTime, endTime);
+
+    startTime = std::max(0.0f, std::min(startTime, duration));
+    endTime   = std::max(startTime, std::min(endTime, duration));
+
+    skin->activeClip     = index;
+    skin->rangeStart      = startTime;
+    skin->rangeEnd        = endTime;
+    skin->clipTime        = startTime;
+    skin->playsRemaining  = (repeatTimes <= 0) ? -1 : repeatTimes;
+    skin->finished         = false;
+
+    skin->Sample(startTime);
+    skin->ComputeJointMatrices();
+    ApplySkinningCPU();
+
+    return true;
+}
+
+
+bool Mesh::IsAnimationFinished() const
+{
+    return skin && skin->finished;
+}
+
+
 void Mesh::StopAnimation()
 {
     if (skin)
@@ -1678,21 +1865,38 @@ void Mesh::StopAnimation()
 
 void Mesh::UpdateAnimation(float deltaSeconds)
 {
-    if (!skin || skin->activeClip < 0)
+    if (!skin || skin->activeClip < 0 || skin->finished)
         return;
-
-    const SkinData::Clip& clip = skin->clips[skin->activeClip];
 
     skin->clipTime += deltaSeconds;
 
-    if (skin->looping)
+    float rangeLen = skin->rangeEnd - skin->rangeStart;
+
+    if (skin->clipTime > skin->rangeEnd)
     {
-        if (clip.duration > 0.0f)
-            skin->clipTime = fmodf(skin->clipTime, clip.duration);
-    }
-    else if (skin->clipTime > clip.duration)
-    {
-        skin->clipTime = clip.duration;
+        if (skin->playsRemaining < 0)
+        {
+            // Infinite loop - wrap back into [rangeStart, rangeEnd).
+            skin->clipTime = (rangeLen > 1e-6f)
+                ? skin->rangeStart + fmodf(skin->clipTime - skin->rangeStart, rangeLen)
+                : skin->rangeStart;
+        }
+        else
+        {
+            skin->playsRemaining--;
+
+            if (skin->playsRemaining > 0)
+            {
+                skin->clipTime = (rangeLen > 1e-6f)
+                    ? skin->rangeStart + fmodf(skin->clipTime - skin->rangeStart, rangeLen)
+                    : skin->rangeStart;
+            }
+            else
+            {
+                skin->clipTime = skin->rangeEnd;
+                skin->finished = true;
+            }
+        }
     }
 
     skin->Sample(skin->clipTime);
@@ -1710,6 +1914,13 @@ bool Mesh::LoadFromGLTF(const std::string& path)
     tinygltf::Model model;
     tinygltf::TinyGLTF loader;
     std::string err, warn;
+
+    // Required because TINYGLTF_NO_STB_IMAGE is defined at the top of
+    // this file - without registering a loader here, tinygltf has no
+    // image decoder at all and Load*() fails immediately with
+    // "No LoadImageData callback specified." the moment the file
+    // references any image (embedded or external).
+    loader.SetImageLoader(LoadImageDataWithFreeImage, nullptr);
 
     bool ok = EndsWith(path, ".glb")
         ? loader.LoadBinaryFromFile(&model, &err, &warn, path)

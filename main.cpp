@@ -5,16 +5,24 @@
 int main()
 {
     Absolut::HelloWorldInit();
+    Absolut::InitAssets();
     Absolut::SceneCamera.mode = Absolut::ProjectionMode::Perspective;
     Absolut::SceneCamera.position = { 0.0f, 0.0f, 10.0f };
     Absolut::SceneCamera.perspNear = 0.1f;
     Absolut::SceneCamera.perspFar  = 1000.0f;
     Absolut::cube.r = 0.8f; Absolut::cube.g = 0.2f; Absolut::cube.b = 0.2f;
-    Absolut::myModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");
+   if (!Absolut::myModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb"))
+{
+    printf("FAILED to load model!\n");
+}
+else
+{
+    printf("Model loaded OK\n");
+}
     Absolut::myModel.position = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.rotation = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.scale    = {1.0f, 1.0f, 1.0f};
-    Absolut::myModel.useLighting = true;
+    Absolut::myModel.useLighting = false;
 
     // --- start playing an animation, if the model has one ---
     if (Absolut::myModel.GetAnimationCount() > 0)
@@ -53,6 +61,8 @@ int main()
         // --- advance the animation before drawing ---
         Absolut::myModel.UpdateAnimation(deltaSeconds);
         Absolut::myModel.draw();
+Absolut::text.Draw("Absolut Games render test", 20.0f, 60.0f, 2.0f);
+Absolut::text.SetProjection(Absolut::ScenePreview.getWidth(), Absolut::ScenePreview.getHeight());
 
         Absolut::SwapWindow(Absolut::SceneCamera);
 
@@ -61,5 +71,6 @@ int main()
     }
 
     Absolut::EndProcess();
+      Absolut::text.Unload();
     return 0;
 }

@@ -26,6 +26,8 @@ void SwapWindow(Absolut::Camera& SceneCamera){
 
 
 int EndProcess(){
+
+
  return 0;
 }
 
