@@ -114,7 +114,20 @@ public:
     Vec3 position = {0.0f, 0.0f, 0.0f};
 
     float zoom = 1.0f;
-    float rotation = 0.0f; // degrees, around the view (Z) axis
+    float rotation = 0.0f; // degrees, roll around the view (Z) axis
+
+
+    // ------------------------------------------------------
+    // LOOK-AROUND (Perspective mode only)
+    //
+    // Separate from 'rotation' (roll) above. yaw turns the
+    // camera left/right around world Y, pitch tilts it up/down
+    // around its own local X axis. No roll is applied here -
+    // 'rotation' is left completely independent of these.
+    // ------------------------------------------------------
+
+    float yaw   = 0.0f; // degrees, turn left/right (around world Y)
+    float pitch = 0.0f; // degrees, look up/down (around local X)
 
 
     // ------------------------------------------------------
@@ -138,9 +151,9 @@ public:
     //
     // Perspective uses fov/perspNear/perspFar instead, and
     // zoom is ignored (use position.z or fov to control the
-    // apparent scale of the scene). position.x/y become a
-    // real world-space camera translation rather than a
-    // planar ortho shift.
+    // apparent scale of the scene). position.x/y/z and yaw/
+    // pitch become a real world-space camera transform rather
+    // than a planar ortho shift.
     // ------------------------------------------------------
 
     ProjectionMode mode = ProjectionMode::Orthographic;
@@ -197,7 +210,10 @@ inline void Camera::apply(int screenWidth, int screenHeight)
     }
 
     // ----------------------------------------------------------
-    // ROTATION (around the view/screen-facing axis)
+    // ROTATION (roll, around the view/screen-facing axis)
+    //
+    // Unchanged from before - still driven only by 'rotation',
+    // independent of yaw/pitch below.
     // ----------------------------------------------------------
 
     float rot[16];
@@ -215,7 +231,8 @@ inline void Camera::apply(int screenWidth, int screenHeight)
     }
 
     // ----------------------------------------------------------
-    // VIEW (camera translation)
+    // VIEW (camera translation, plus yaw/pitch look-around in
+    // Perspective mode - no roll enters this matrix)
     //
     // Orthographic mode keeps the original behavior: x/y pan is
     // already baked into the projection above via left/right/
@@ -225,7 +242,8 @@ inline void Camera::apply(int screenWidth, int screenHeight)
     // camera's depth).
     //
     // Perspective mode has no left/right/top/bottom to pan with,
-    // so the full position (x, y, z) is applied here instead.
+    // so the full position (x, y, z) plus yaw/pitch rotation is
+    // applied here instead.
     // ----------------------------------------------------------
 
     float view[16];
@@ -234,9 +252,39 @@ inline void Camera::apply(int screenWidth, int screenHeight)
 
     if (mode == ProjectionMode::Perspective)
     {
-        view[12] = -position.x;
-        view[13] = -position.y;
-        view[14] = -position.z;
+        float yawRad   = yaw   * 3.14159265f / 180.0f;
+        float pitchRad = pitch * 3.14159265f / 180.0f;
+
+        float cy = cosf(yawRad),   sy = sinf(yawRad);
+        float cp = cosf(pitchRad), sp = sinf(pitchRad);
+
+        // Yaw: rotation around world Y
+        float rotView[16];
+        CameraMath::Identity(rotView);
+        rotView[0]  = cy;
+        rotView[2]  = -sy;
+        rotView[8]  = sy;
+        rotView[10] = cy;
+
+        // Pitch: rotation around local X
+        float pitchMat[16];
+        CameraMath::Identity(pitchMat);
+        pitchMat[5]  = cp;
+        pitchMat[6]  = sp;
+        pitchMat[9]  = -sp;
+        pitchMat[10] = cp;
+
+        // Combined look-around rotation: pitch * yaw, no roll
+        float combinedRot[16];
+        CameraMath::Multiply(combinedRot, pitchMat, rotView);
+
+        float translate[16];
+        CameraMath::Identity(translate);
+        translate[12] = -position.x;
+        translate[13] = -position.y;
+        translate[14] = -position.z;
+
+        CameraMath::Multiply(view, combinedRot, translate);
     }
     else
     {
