@@ -27,28 +27,23 @@ int main()
 
     Absolut::cube.r = 0.8f; Absolut::cube.g = 0.2f; Absolut::cube.b = 0.2f;
 
-    if (!Absolut::myModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb"))
-    {
-        printf("FAILED to load model!\n");
-    }
-    else
-    {
-        printf("Model loaded OK\n");
-    }
+
+
 
     Absolut::myModel.position = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.rotation = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.scale    = {1.0f, 1.0f, 1.0f};
-    Absolut::myModel.useLighting = false;
+    Absolut::myModel.useLighting = true;
 
     // --- start playing an animation, if the model has one ---
     if (Absolut::myModel.GetAnimationCount() > 0)
     {
-        printf("Playing: %s\n", Absolut::myModel.GetAnimationName(0).c_str());
-        Absolut::myModel.SetAnimation(0, true); // index 0, looping
+        printf("Playing: %s\n", Absolut::myModel.GetAnimationName(1).c_str());
+        Absolut::myModel.SetAnimation(1, true);
+ // index 0, looping
     }
 
-    Absolut::AudioSystem.Loop("Resources/Sound/BackgroundMusic/bgm.wav");
+    Absolut::AudioSystem.Loop("Resources/Sound/BackgroundMusic/loading.mp3");
 
     // --- for delta time ---
     auto lastTime = std::chrono::steady_clock::now();
