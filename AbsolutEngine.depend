@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1787235817 source:c:\developmentfiles\absolutengine\main.cpp
+1787236019 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	"Engine/dependencies/engineincludes.h"
@@ -8,7 +8,7 @@
 
 1786101981 c:\developmentfiles\absolutengine\engine\math\vec2.h
 
-1787138259 c:\developmentfiles\absolutengine\engine\dependencies\engineincludes.h
+1787287181 c:\developmentfiles\absolutengine\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -26,13 +26,14 @@
 	"Engine/GLES2Render/CameraTransform.h"
 	"Geom/Box3.h"
 	"Engine/Src/Image/Font.h"
+	"Math/Collision.h"
 
 1786700095 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
 
 1786273554 c:\developmentfiles\absolutengine\\engine\src\log\log.h
 	"Engine/dependencies/include.h"
 
-1787138151 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
+1788005019 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -49,6 +50,7 @@
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 	"tiny_gltf.h"
+	"ufbx.h"
 
 1512590989 c:\mingw\include\stdio.h
 	<_mingw.h>
@@ -82,7 +84,7 @@
 	<_mingw.h>
 	<stddef.h>
 
-1787138151 c:\developmentfiles\absolutengine\engine\dependencies\include.h
+1788005019 c:\developmentfiles\absolutengine\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -99,6 +101,7 @@
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 	"tiny_gltf.h"
+	"ufbx.h"
 
 1512591001 c:\mingw\include\windows.h
 	<winresrc.h>
@@ -889,7 +892,7 @@
 1786809197 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1787138259 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1787287181 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -907,6 +910,7 @@
 	"Engine/GLES2Render/CameraTransform.h"
 	"Geom/Box3.h"
 	"Engine/Src/Image/Font.h"
+	"Math/Collision.h"
 
 1787140746 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
@@ -1168,7 +1172,7 @@
 	<functional>
 	<utility>
 
-1787129043 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
+1788003059 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
 	"Engine/dependencies/include.h"
 	<string>
 	<vector>
@@ -1294,4 +1298,19 @@
 
 1787138118 c:\developmentfiles\absolutengine\\engine\src\image\font.h
 	"Engine/dependencies/include.h"
+
+1787287243 c:\developmentfiles\absolutengine\engine\src\math\collision.h
+	"Math/Vector.h"
+
+1788002968 c:\developmentfiles\absolutengine\\engine\dependencies\ufbx.h
+	<stdint.h>
+	<stddef.h>
+	<stdbool.h>
+	<assert.h>
+
+1788002968 c:\developmentfiles\absolutengine\engine\dependencies\ufbx.h
+	<stdint.h>
+	<stddef.h>
+	<stdbool.h>
+	<assert.h>
 

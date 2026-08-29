@@ -42,6 +42,7 @@
 					<Add option="-mconsole" />
 					<Add option="-lGLESv2" />
 					<Add option="-lEGL" />
+					<Add option="-lFreeImage" />
 					<Add library="user32" />
 					<Add library="opengl32" />
 					<Add library="kernel32" />
@@ -98,6 +99,7 @@
 		<Unit filename="Engine/Src/Input/InputMouse.cpp" />
 		<Unit filename="Engine/Src/Input/InputMouse.h" />
 		<Unit filename="Engine/Src/Log/Log.h" />
+		<Unit filename="Engine/Src/Math/Collision.h" />
 		<Unit filename="Engine/Src/Math/Vec2.h" />
 		<Unit filename="Engine/Src/Sound/Sound.cpp" />
 		<Unit filename="Engine/Src/Sound/Sound.hpp" />

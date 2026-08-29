@@ -1,46 +1,15 @@
-// These MUST be defined before the first #include in this file.
-// Mesh.h -> Engine/dependencies/include.h -> tiny_gltf.h, and
-// tiny_gltf.h is include-guarded - whichever inclusion happens
-// first in this translation unit is the only one that matters.
-// If TINYGLTF_IMPLEMENTATION isn't set yet when that first
-// inclusion happens, every tinygltf function ends up declared
-// but never defined, and the link fails.
-#define TINYGLTF_NO_STB_IMAGE       // FreeImage decodes images now, not stb_image
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_IMPLEMENTATION
-
-#include "Mesh.h"   // pulls in Engine/dependencies/include.h, which
-                     // includes windows.h, FreeImage.h, and tiny_gltf.h
-                     // in the right order already - nothing else needed here
-
-
+#include "Mesh.h"
 #include "Engine/GLES2Render/CameraTransform.h"
+#include "ufbx.h"
 
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
 #include <functional>
 #include <utility>
-// ----------------------------------------------------------------
-// TINYGLTF
-//
-// tiny_gltf.h is header-only but needs exactly one translation
-// unit that defines TINYGLTF_IMPLEMENTATION before including it -
-// this is that TU. Do not add these defines anywhere else or
-// you'll get duplicate-symbol link errors.
-//
-// Geometry (positions/normals/uvs/indices), skin data (joint
-// indices/weights/inverse-bind matrices), animation clips, AND
-// base-color textures are all read out of glTF files here.
-// Images are decoded through FreeImage (see LoadImageDataWithFreeImage
-// below), NOT stb_image - TINYGLTF_NO_STB_IMAGE is defined above,
-// so tinygltf has no built-in decoder and MUST be given a custom
-// LoadImageDataFunction via TinyGLTF::SetImageLoader() before any
-// Load*() call, or it fails immediately with "No LoadImageData
-// callback specified."
-// ----------------------------------------------------------------
-
-
+#include <string>
+#include <vector>
+#include <cctype>
 
 namespace Absolut
 {
@@ -1167,1102 +1136,423 @@ Mesh Mesh::CreateSphere(float radius, int latSegments, int lonSegments)
 
 
 // ============================================================
-// GLTF LOADING
+// UFBX MODEL / ANIMATION LOADING
+// ============================================================
+// FBX and OBJ are loaded through ufbx. Animation stacks are baked by ufbx
+// into simple translation/quaternion/scale keys and converted into the
+// existing Mesh::SkinData format. This means the existing PlayAnimation(),
+// SetAnimation(), UpdateAnimation() and CPU skinning code remain unchanged.
 // ============================================================
 
-static bool EndsWith(const std::string& value, const std::string& suffix)
+static std::string MeshExtension(const std::string& path)
 {
-    if (suffix.size() > value.size())
-        return false;
+    size_t dot = path.find_last_of('.');
+    if (dot == std::string::npos)
+        return std::string();
 
-    return std::equal(suffix.rbegin(), suffix.rend(), value.rbegin());
+    std::string ext = path.substr(dot);
+    for (size_t i = 0; i < ext.size(); ++i)
+        ext[i] = (char)std::tolower((unsigned char)ext[i]);
+    return ext;
 }
 
-
-// ------------------------------------------------------------
-// Custom tinygltf image loader, backed by FreeImage instead of
-// stb_image (TINYGLTF_NO_STB_IMAGE is defined at the top of this
-// file, so tinygltf has no built-in decoder of its own). Decodes
-// embedded/external glTF images into RGBA8, top-to-bottom, which
-// is what tinygltf::Image::image / CreateGLTextureFromImage()
-// below both expect.
-//
-// Registered via loader.SetImageLoader(...) in LoadFromGLTF() -
-// without that call, tinygltf has no way to decode images and
-// LoadBinaryFromFile()/LoadASCIIFromFile() fail immediately with
-// "No LoadImageData callback specified." the moment the glTF/glb
-// references any image.
-// ------------------------------------------------------------
-static bool LoadImageDataWithFreeImage(
-    tinygltf::Image* image,
-    const int /*image_idx*/,
-    std::string* err,
-    std::string* /*warn*/,
-    int /*req_width*/, int /*req_height*/,
-    const unsigned char* bytes,
-    int size,
-    void* /*user_data*/)
+static void UFBXMatrixToFloat(const ufbx_matrix& m, float* out)
 {
-    FIMEMORY* mem = FreeImage_OpenMemory(
-        const_cast<BYTE*>(bytes),
-        static_cast<DWORD>(size)
-    );
+    // ufbx_matrix stores columns as cols[0..3], matching our column-major
+    // CameraMath matrices.
+    out[0]  = (float)m.m00; out[1]  = (float)m.m10; out[2]  = (float)m.m20; out[3]  = 0.0f;
+    out[4]  = (float)m.m01; out[5]  = (float)m.m11; out[6]  = (float)m.m21; out[7]  = 0.0f;
+    out[8]  = (float)m.m02; out[9]  = (float)m.m12; out[10] = (float)m.m22; out[11] = 0.0f;
+    out[12] = (float)m.m03; out[13] = (float)m.m13; out[14] = (float)m.m23; out[15] = 1.0f;
+}
 
-    if (!mem)
+bool LoadUFBXModel(Mesh& mesh, const std::string& path)
+{
+    ufbx_load_opts opts = {};
+    opts.load_external_files = true;
+    opts.ignore_missing_external_files = true;
+    opts.generate_missing_normals = true;
+    opts.target_axes = ufbx_axes_right_handed_y_up;
+    opts.target_unit_meters = 1.0f;
+
+    ufbx_error error = {};
+    ufbx_scene* scene = ufbx_load_file(path.c_str(), &opts, &error);
+
+    if (!scene)
     {
-        if (err) *err += "FreeImage_OpenMemory failed\n";
+        printf("Mesh::Load: ufbx failed to load '%s': %s\n",
+               path.c_str(), error.description.data);
         return false;
     }
 
-    FREE_IMAGE_FORMAT fmt = FreeImage_GetFileTypeFromMemory(mem, 0);
+    if (scene->meshes.count == 0)
+    {
+        printf("Mesh::Load: no mesh found in '%s'\n", path.c_str());
+        ufbx_free_scene(scene);
+        return false;
+    }
+
+    // The Mesh class is one drawable mesh. Use the first source mesh,
+    // matching the old LoadFromGLTF() one-mesh API.
+    ufbx_mesh* src = scene->meshes.data[0];
+    if (!src)
+    {
+        ufbx_free_scene(scene);
+        return false;
+    }
+
+    std::vector<MeshVertex> newVertices;
+    std::vector<Mesh::SkinVertex> newSkinVerts;
+
+    size_t estimated = 0;
+    for (size_t fi = 0; fi < src->faces.count; ++fi)
+        estimated += src->faces.data[fi].num_indices >= 3
+            ? (src->faces.data[fi].num_indices - 2) * 3 : 0;
+    newVertices.reserve(estimated);
+
+    // Find a skin deformer, if the model has one.
+    ufbx_skin_deformer* srcSkin =
+        src->skin_deformers.count ? src->skin_deformers.data[0] : NULL;
+
+    if (srcSkin)
+        newSkinVerts.reserve(estimated);
+
+    std::vector<uint32_t> triIndices;
+    size_t maxFaceTriangles = src->max_face_triangles;
+    if (maxFaceTriangles < 1)
+        maxFaceTriangles = 1;
+    triIndices.resize(maxFaceTriangles * 3);
+
+    for (size_t fi = 0; fi < src->faces.count; ++fi)
+    {
+        ufbx_face face = src->faces.data[fi];
+        if (face.num_indices < 3)
+            continue;
+
+        uint32_t numTriangles = ufbx_triangulate_face(
+            triIndices.data(),
+            triIndices.size(),
+            src,
+            face
+        );
+
+        for (uint32_t ti = 0; ti < numTriangles * 3; ++ti)
+        {
+            uint32_t cornerIndex = triIndices[ti];
+            uint32_t vertexIndex = src->vertex_indices.data[cornerIndex];
+
+            ufbx_vec3 p = ufbx_get_vertex_vec3(
+                &src->vertex_position, cornerIndex);
+
+            ufbx_vec3 n = {0, 1, 0};
+            if (src->vertex_normal.exists)
+                n = ufbx_get_vertex_vec3(&src->vertex_normal, cornerIndex);
+
+            ufbx_vec2 uv = {0, 0};
+            if (src->vertex_uv.exists)
+                uv = ufbx_get_vertex_vec2(&src->vertex_uv, cornerIndex);
+
+            MeshVertex v;
+            v.px = (float)p.x;
+            v.py = (float)p.y;
+            v.pz = (float)p.z;
+            v.nx = (float)n.x;
+            v.ny = (float)n.y;
+            v.nz = (float)n.z;
+            v.u = (float)uv.x;
+            v.v = (float)uv.y;
+            newVertices.push_back(v);
+
+            if (srcSkin)
+            {
+                Mesh::SkinVertex sv;
+
+                if (vertexIndex < srcSkin->vertices.count)
+                {
+                    ufbx_skin_vertex sw = srcSkin->vertices.data[vertexIndex];
+
+                    float total = 0.0f;
+                    int used = 0;
+
+                    for (size_t wi = 0;
+                         wi < sw.num_weights && used < 4;
+                         ++wi)
+                    {
+                        size_t weightIndex =
+                            (size_t)sw.weight_begin + wi;
+                        if (weightIndex >= srcSkin->weights.count)
+                            break;
+
+                        ufbx_skin_weight w =
+                            srcSkin->weights.data[weightIndex];
+
+                        if (w.cluster_index >= srcSkin->clusters.count)
+                            continue;
+
+                        sv.joints[used] = (unsigned short)w.cluster_index;
+                        sv.weights[used] = (float)w.weight;
+                        total += (float)w.weight;
+                        ++used;
+                    }
+
+                    if (total > 1e-8f)
+                    {
+                        for (int k = 0; k < 4; ++k)
+                            sv.weights[k] /= total;
+                    }
+                }
+
+                newSkinVerts.push_back(sv);
+            }
+        }
+    }
+
+    if (newVertices.empty())
+    {
+        printf("Mesh::Load: '%s' has no triangle geometry\n", path.c_str());
+        ufbx_free_scene(scene);
+        return false;
+    }
+
+    mesh.releaseGL();
+    mesh.vertices = std::move(newVertices);
+    mesh.indices.clear();
+    mesh.skin.reset();
+    mesh.bindPoseVertices.clear();
+    mesh.skinVerts.clear();
+    mesh.vertexBufferIsDynamic = false;
+    mesh.verticesDirty = false;
+    mesh.uploaded = false;
+
+    if (srcSkin && srcSkin->clusters.count > 0)
+    {
+        std::unique_ptr<Mesh::SkinData, Mesh::SkinDataDeleter> newSkin(
+            new Mesh::SkinData());
+
+        // Build the complete FBX node hierarchy. ufbx typed_id maps directly
+        // to scene->nodes[] as documented by ufbx_baked_node.
+        newSkin->nodes.resize(scene->nodes.count);
+        for (size_t i = 0; i < scene->nodes.count; ++i)
+            newSkin->nodes[i] = UFBXNodeToSkinNode(scene->nodes.data[i]);
+
+        // The order of these joints is exactly the order used by
+        // ufbx_skin_weight.cluster_index, so Mesh::SkinVertex can use it.
+        newSkin->joints.resize(srcSkin->clusters.count);
+
+        for (size_t ci = 0; ci < srcSkin->clusters.count; ++ci)
+        {
+            ufbx_skin_cluster* cluster = srcSkin->clusters.data[ci];
+            Mesh::SkinData::Joint& joint = newSkin->joints[ci];
+            joint.nodeIndex = cluster && cluster->bone_node
+                ? (int)cluster->bone_node->typed_id : -1;
+
+            if (cluster)
+                UFBXMatrixToFloat(cluster->geometry_to_bone, joint.inverseBind);
+            else
+                CameraMath::Identity(joint.inverseBind);
+        }
+
+        // Bake every FBX animation stack into the engine's existing
+        // translation/rotation/scale clip representation.
+        for (size_t stackIndex = 0; stackIndex < scene->anim_stacks.count; ++stackIndex)
+        {
+            ufbx_anim_stack* stack = scene->anim_stacks.data[stackIndex];
+            if (!stack || !stack->anim)
+                continue;
+
+            ufbx_error bakeError = {};
+            ufbx_baked_anim* bake = ufbx_bake_anim(
+                scene, stack->anim, NULL, &bakeError);
+
+            if (!bake)
+            {
+                printf("Mesh::Load: couldn't bake FBX animation '%s': %s\\n",
+                       stack->name.data, bakeError.description.data);
+                continue;
+            }
+
+            Mesh::SkinData::Clip clip;
+            clip.name = stack->name.data ? stack->name.data : "Animation";
+            clip.duration = (float)bake->playback_duration;
+
+            for (size_t bi = 0; bi < bake->nodes.count; ++bi)
+            {
+                const ufbx_baked_node& bn = bake->nodes.data[bi];
+                if (bn.typed_id >= newSkin->nodes.size())
+                    continue;
+
+                if (bn.translation_keys.count > 0)
+                {
+                    Mesh::SkinData::Channel ch;
+                    ch.nodeIndex = (int)bn.typed_id;
+                    ch.path = Mesh::SkinData::Path::Translation;
+                    ch.interp = Mesh::SkinData::Interp::Linear;
+                    for (size_t k = 0; k < bn.translation_keys.count; ++k)
+                    {
+                        const ufbx_baked_vec3& key = bn.translation_keys.data[k];
+                        ch.times.push_back((float)(key.time - bake->playback_time_begin));
+                        ch.values.push_back((float)key.value.x);
+                        ch.values.push_back((float)key.value.y);
+                        ch.values.push_back((float)key.value.z);
+                    }
+                    clip.channels.push_back(std::move(ch));
+                }
+
+                if (bn.rotation_keys.count > 0)
+                {
+                    Mesh::SkinData::Channel ch;
+                    ch.nodeIndex = (int)bn.typed_id;
+                    ch.path = Mesh::SkinData::Path::Rotation;
+                    ch.interp = Mesh::SkinData::Interp::Linear;
+                    for (size_t k = 0; k < bn.rotation_keys.count; ++k)
+                    {
+                        const ufbx_baked_quat& key = bn.rotation_keys.data[k];
+                        ch.times.push_back((float)(key.time - bake->playback_time_begin));
+                        ch.values.push_back((float)key.value.x);
+                        ch.values.push_back((float)key.value.y);
+                        ch.values.push_back((float)key.value.z);
+                        ch.values.push_back((float)key.value.w);
+                    }
+                    clip.channels.push_back(std::move(ch));
+                }
+
+                if (bn.scale_keys.count > 0)
+                {
+                    Mesh::SkinData::Channel ch;
+                    ch.nodeIndex = (int)bn.typed_id;
+                    ch.path = Mesh::SkinData::Path::Scale;
+                    ch.interp = Mesh::SkinData::Interp::Linear;
+                    for (size_t k = 0; k < bn.scale_keys.count; ++k)
+                    {
+                        const ufbx_baked_vec3& key = bn.scale_keys.data[k];
+                        ch.times.push_back((float)(key.time - bake->playback_time_begin));
+                        ch.values.push_back((float)key.value.x);
+                        ch.values.push_back((float)key.value.y);
+                        ch.values.push_back((float)key.value.z);
+                    }
+                    clip.channels.push_back(std::move(ch));
+                }
+            }
+
+            if (!clip.channels.empty())
+                newSkin->clips.push_back(std::move(clip));
+
+            ufbx_free_baked_anim(bake);
+        }
+
+        if (!newSkin->joints.empty())
+        {
+            mesh.skin = std::move(newSkin);
+            mesh.bindPoseVertices = mesh.vertices;
+            mesh.skinVerts = std::move(newSkinVerts);
+            mesh.vertexBufferIsDynamic = true;
+
+            mesh.skin->activeClip = -1;
+            mesh.skin->clipTime = 0.0f;
+            mesh.skin->rangeStart = 0.0f;
+            mesh.skin->rangeEnd = 0.0f;
+            mesh.skin->playsRemaining = -1;
+            mesh.skin->finished = false;
+        }
+    }
+
+    // The source scene is no longer needed after converting the mesh and
+    // baking the animation stacks into Mesh::SkinData.
+    ufbx_free_scene(scene);
+
+    return true;
+}
+
+bool Mesh::Load(const std::string& path)
+{
+    std::string ext = MeshExtension(path);
+
+    if (ext == ".fbx" || ext == ".obj")
+        return LoadUFBXModel(*this, path);
+
+    printf("Mesh::Load: unsupported format: %s\n", path.c_str());
+    printf("Mesh::Load: supported formats: .fbx and .obj\n");
+    return false;
+}
+
+bool Mesh::SourceTexture(
+    const std::string& source,
+    const std::string& texturePath)
+{
+    (void)source;
+
+    FREE_IMAGE_FORMAT fmt = FreeImage_GetFileType(texturePath.c_str(), 0);
+    if (fmt == FIF_UNKNOWN)
+        fmt = FreeImage_GetFIFFromFilename(texturePath.c_str());
 
     if (fmt == FIF_UNKNOWN)
-    {
-        FreeImage_CloseMemory(mem);
-        if (err) *err += "FreeImage: unknown image format in glTF buffer\n";
         return false;
-    }
 
-    FIBITMAP* bitmap = FreeImage_LoadFromMemory(fmt, mem, 0);
-    FreeImage_CloseMemory(mem);
-
-    if (!bitmap)
-    {
-        if (err) *err += "FreeImage_LoadFromMemory failed\n";
+    FIBITMAP* image = FreeImage_Load(fmt, texturePath.c_str(), 0);
+    if (!image)
         return false;
-    }
 
-    FIBITMAP* converted = FreeImage_ConvertTo32Bits(bitmap);
-    FreeImage_Unload(bitmap);
-
-    if (!converted)
-    {
-        if (err) *err += "FreeImage_ConvertTo32Bits failed\n";
+    FIBITMAP* rgba = FreeImage_ConvertTo32Bits(image);
+    FreeImage_Unload(image);
+    if (!rgba)
         return false;
-    }
 
-    int width  = (int)FreeImage_GetWidth(converted);
-    int height = (int)FreeImage_GetHeight(converted);
-    BYTE* bits = FreeImage_GetBits(converted);
-    unsigned int pitch = FreeImage_GetPitch(converted);
+    int width = (int)FreeImage_GetWidth(rgba);
+    int height = (int)FreeImage_GetHeight(rgba);
+    BYTE* bits = FreeImage_GetBits(rgba);
+    unsigned pitch = FreeImage_GetPitch(rgba);
 
     if (!bits || width <= 0 || height <= 0)
     {
-        FreeImage_Unload(converted);
-        if (err) *err += "FreeImage: decoded image has no pixel data\n";
+        FreeImage_Unload(rgba);
         return false;
     }
 
-    image->width     = width;
-    image->height    = height;
-    image->component = 4;
-    image->bits       = 8;
-    image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
-    image->image.resize(width * height * 4);
+    std::vector<unsigned char> pixels(
+        (size_t)width * (size_t)height * 4);
 
-    // FreeImage is BGRA and stores bottom-to-top; flip to top-to-bottom
-    // RGBA to match what tinygltf/OpenGL callers expect.
     for (int y = 0; y < height; ++y)
     {
-        BYTE* srcRow = bits + y * pitch;
-        unsigned char* dstRow =
-            image->image.data() + (height - 1 - y) * width * 4;
+        BYTE* srcRow = bits + (size_t)y * pitch;
+        unsigned char* dstRow = pixels.data() +
+            (size_t)(height - 1 - y) * (size_t)width * 4;
 
         for (int x = 0; x < width; ++x)
         {
             BYTE* p = srcRow + x * 4;
-            unsigned char* o = dstRow + x * 4;
-
-            o[0] = p[FI_RGBA_RED];
-            o[1] = p[FI_RGBA_GREEN];
-            o[2] = p[FI_RGBA_BLUE];
-            o[3] = p[FI_RGBA_ALPHA];
+            dstRow[x * 4 + 0] = p[FI_RGBA_RED];
+            dstRow[x * 4 + 1] = p[FI_RGBA_GREEN];
+            dstRow[x * 4 + 2] = p[FI_RGBA_BLUE];
+            dstRow[x * 4 + 3] = p[FI_RGBA_ALPHA];
         }
     }
 
-    FreeImage_Unload(converted);
-    return true;
-}
-
-
-// Reads a glTF accessor's data into out, one component set per
-// element (e.g. 3 floats per vec3). Only handles the component
-// types tinygltf's Meshes/Blender/Maya exporters actually emit
-// for POSITION/NORMAL/TEXCOORD_0/animation-sampler/inverse-bind-
-// matrix data (float) - extend here if you hit an exporter that
-// does something unusual. Also used for animation sampler
-// input/output (componentsPerElement = 1, 3, or 4) and inverse
-// bind matrices (componentsPerElement = 16).
-static bool ReadFloatAccessor(
-    const tinygltf::Model& model,
-    int accessorIndex,
-    int componentsPerElement,
-    std::vector<float>& out)
-{
-    if (accessorIndex < 0)
-        return false;
-
-    const tinygltf::Accessor& accessor = model.accessors[accessorIndex];
-    const tinygltf::BufferView& view = model.bufferViews[accessor.bufferView];
-    const tinygltf::Buffer& buffer = model.buffers[view.buffer];
-
-    if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT)
-    {
-        printf("Mesh::LoadFromGLTF: non-float accessor not supported\n");
-        return false;
-    }
-
-    size_t stride = accessor.ByteStride(view);
-    if (stride == 0)
-        stride = componentsPerElement * sizeof(float);
-
-    const unsigned char* base =
-        buffer.data.data() + view.byteOffset + accessor.byteOffset;
-
-    out.resize(accessor.count * componentsPerElement);
-
-    for (size_t i = 0; i < accessor.count; ++i)
-    {
-        const float* src = reinterpret_cast<const float*>(base + i * stride);
-
-        for (int c = 0; c < componentsPerElement; ++c)
-            out[i * componentsPerElement + c] = src[c];
-    }
-
-    return true;
-}
-
-
-static bool ReadIndexAccessor(
-    const tinygltf::Model& model,
-    int accessorIndex,
-    std::vector<unsigned short>& out)
-{
-    const tinygltf::Accessor& accessor = model.accessors[accessorIndex];
-    const tinygltf::BufferView& view = model.bufferViews[accessor.bufferView];
-    const tinygltf::Buffer& buffer = model.buffers[view.buffer];
-
-    const unsigned char* base =
-        buffer.data.data() + view.byteOffset + accessor.byteOffset;
-
-    out.resize(accessor.count);
-
-    for (size_t i = 0; i < accessor.count; ++i)
-    {
-        unsigned int value = 0;
-
-        switch (accessor.componentType)
-        {
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-                value = base[i];
-                break;
-
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-                value = reinterpret_cast<const unsigned short*>(base)[i];
-                break;
-
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-                value = reinterpret_cast<const unsigned int*>(base)[i];
-                break;
-
-            default:
-                printf("Mesh::LoadFromGLTF: unsupported index component type\n");
-                return false;
-        }
-
-        if (value > 0xFFFF)
-        {
-            printf(
-                "Mesh::LoadFromGLTF: index %u exceeds GLES2's unsigned short "
-                "range - split this mesh into smaller pieces before export\n",
-                value
-            );
-            return false;
-        }
-
-        out[i] = (unsigned short)value;
-    }
-
-    return true;
-}
-
-
-// JOINTS_0 is VEC4 of ubyte or ushort - always integer, never
-// normalized, so this doesn't share code with ReadWeightsAccessor.
-static bool ReadJointsAccessor(
-    const tinygltf::Model& model,
-    int accessorIndex,
-    std::vector<unsigned short>& out) // 4 per vertex
-{
-    const tinygltf::Accessor& accessor = model.accessors[accessorIndex];
-    const tinygltf::BufferView& view = model.bufferViews[accessor.bufferView];
-    const tinygltf::Buffer& buffer = model.buffers[view.buffer];
-
-    const unsigned char* base =
-        buffer.data.data() + view.byteOffset + accessor.byteOffset;
-    size_t stride = accessor.ByteStride(view);
-
-    out.resize(accessor.count * 4);
-
-    for (size_t i = 0; i < accessor.count; ++i)
-    {
-        switch (accessor.componentType)
-        {
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-            {
-                size_t s = stride ? stride : 4 * sizeof(unsigned char);
-                const unsigned char* src = base + i * s;
-                for (int c = 0; c < 4; ++c) out[i * 4 + c] = src[c];
-                break;
-            }
-
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-            {
-                size_t s = stride ? stride : 4 * sizeof(unsigned short);
-                const unsigned short* src =
-                    reinterpret_cast<const unsigned short*>(base + i * s);
-                for (int c = 0; c < 4; ++c) out[i * 4 + c] = src[c];
-                break;
-            }
-
-            default:
-                printf("Mesh::LoadFromGLTF: unsupported JOINTS_0 component type\n");
-                return false;
-        }
-    }
-
-    return true;
-}
-
-
-// WEIGHTS_0 is VEC4 of float, or normalized ubyte/ushort.
-static bool ReadWeightsAccessor(
-    const tinygltf::Model& model,
-    int accessorIndex,
-    std::vector<float>& out) // 4 per vertex
-{
-    const tinygltf::Accessor& accessor = model.accessors[accessorIndex];
-    const tinygltf::BufferView& view = model.bufferViews[accessor.bufferView];
-    const tinygltf::Buffer& buffer = model.buffers[view.buffer];
-
-    const unsigned char* base =
-        buffer.data.data() + view.byteOffset + accessor.byteOffset;
-    size_t stride = accessor.ByteStride(view);
-
-    out.resize(accessor.count * 4);
-
-    for (size_t i = 0; i < accessor.count; ++i)
-    {
-        switch (accessor.componentType)
-        {
-            case TINYGLTF_COMPONENT_TYPE_FLOAT:
-            {
-                size_t s = stride ? stride : 4 * sizeof(float);
-                const float* src = reinterpret_cast<const float*>(base + i * s);
-                for (int c = 0; c < 4; ++c) out[i * 4 + c] = src[c];
-                break;
-            }
-
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-            {
-                size_t s = stride ? stride : 4 * sizeof(unsigned char);
-                const unsigned char* src = base + i * s;
-                for (int c = 0; c < 4; ++c) out[i * 4 + c] = src[c] / 255.0f;
-                break;
-            }
-
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-            {
-                size_t s = stride ? stride : 4 * sizeof(unsigned short);
-                const unsigned short* src =
-                    reinterpret_cast<const unsigned short*>(base + i * s);
-                for (int c = 0; c < 4; ++c) out[i * 4 + c] = src[c] / 65535.0f;
-                break;
-            }
-
-            default:
-                printf("Mesh::LoadFromGLTF: unsupported WEIGHTS_0 component type\n");
-                return false;
-        }
-    }
-
-    return true;
-}
-
-
-// Decodes a glTF image (already loaded into `image.image` as raw
-// pixels by tinygltf via LoadImageDataWithFreeImage above) into a
-// new GL texture. Returns 0 on failure - caller decides whether
-// that's fatal.
-static GLuint CreateGLTextureFromImage(const tinygltf::Image& image)
-{
-    if (image.image.empty() || image.width <= 0 || image.height <= 0)
-    {
-        printf(
-            "Mesh::LoadFromGLTF: baseColorTexture has no decoded pixel data\n"
-        );
-        return 0;
-    }
-
-    GLenum format;
-    switch (image.component)
-    {
-        case 1: format = GL_LUMINANCE;       break;
-        case 2: format = GL_LUMINANCE_ALPHA; break;
-        case 3: format = GL_RGB;             break;
-        case 4: format = GL_RGBA;            break;
-        default:
-            printf(
-                "Mesh::LoadFromGLTF: unsupported texture component count %d\n",
-                image.component
-            );
-            return 0;
-    }
+    FreeImage_Unload(rgba);
 
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-
-    GLint prevAlign = 4;
-    glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevAlign);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glTexImage2D(
-        GL_TEXTURE_2D, 0, format,
-        image.width, image.height, 0,
-        format, GL_UNSIGNED_BYTE, image.image.data()
+        GL_TEXTURE_2D, 0, GL_RGBA,
+        width, height, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE,
+        pixels.data()
     );
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, prevAlign);
-
-    // No mipmaps: GLES2 can't mip NPOT textures without going
-    // through a full power-of-two upload path, and glTF source
-    // images aren't guaranteed POT. Plain bilinear + clamp is the
-    // safe default; add POT-only mipmapping yourself if you need it.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return tex;
-}
+    if (mesh.ownsTexture && mesh.texture)
+        glDeleteTextures(1, &mesh.texture);
 
-
-// NOTE: struct Mesh::SkinData and Mesh::SkinDataDeleter::operator()
-// are defined earlier in this file (right after the Quat/matrix
-// helpers, before the LIFETIME section below) rather than here -
-// they need to happen before Mesh::~Mesh()/move-ctor/move-assign
-// are compiled, and those come first in the file.
-
-
-void Mesh::SkinData::RecomputeGlobalTransforms()
-{
-    std::vector<bool> done(nodes.size(), false);
-
-    std::function<void(int)> computeNode = [&](int i)
-    {
-        if (done[i])
-            return;
-
-        float local[16];
-        ComputeLocalMatrix(nodes[i].translation, nodes[i].rotation, nodes[i].scaleV, local);
-
-        if (nodes[i].parent < 0)
-        {
-            for (int k = 0; k < 16; ++k)
-                nodes[i].global[k] = local[k];
-        }
-        else
-        {
-            computeNode(nodes[i].parent);
-            CameraMath::Multiply(nodes[i].global, nodes[nodes[i].parent].global, local);
-        }
-
-        done[i] = true;
-    };
-
-    for (size_t i = 0; i < nodes.size(); ++i)
-        computeNode((int)i);
-}
-
-
-void Mesh::SkinData::Sample(float t)
-{
-    // Reset every node to its bind pose first, so properties the
-    // active clip doesn't drive (or clips with partial coverage)
-    // don't inherit stale values from whatever played previously.
-    for (Node& n : nodes)
-    {
-        n.translation = n.bindTranslation;
-        n.rotation    = n.bindRotation;
-        n.scaleV      = n.bindScale;
-    }
-
-    if (activeClip < 0 || activeClip >= (int)clips.size())
-        return;
-
-    const Clip& clip = clips[activeClip];
-
-    for (const Channel& ch : clip.channels)
-    {
-        if (ch.nodeIndex < 0 || ch.nodeIndex >= (int)nodes.size() || ch.times.empty())
-            continue;
-
-        // Find the bracketing keyframes [i0, i1] for time t.
-        size_t i1 = 0;
-        while (i1 < ch.times.size() && ch.times[i1] < t)
-            ++i1;
-
-        size_t i0;
-        float localT;
-
-        if (i1 == 0)
-        {
-            i0 = i1 = 0;
-            localT = 0.0f;
-        }
-        else if (i1 >= ch.times.size())
-        {
-            i0 = i1 = ch.times.size() - 1;
-            localT = 0.0f;
-        }
-        else
-        {
-            i0 = i1 - 1;
-            float span = ch.times[i1] - ch.times[i0];
-            localT = (span > 1e-6f) ? (t - ch.times[i0]) / span : 0.0f;
-        }
-
-        if (ch.interp == Interp::Step)
-            localT = 0.0f; // snap to i0, no blending
-
-        Node& node = nodes[ch.nodeIndex];
-
-        switch (ch.path)
-        {
-            case Path::Translation:
-            {
-                const float* a = &ch.values[i0 * 3];
-                const float* b = &ch.values[i1 * 3];
-                node.translation = Vec3{
-                    a[0] + (b[0] - a[0]) * localT,
-                    a[1] + (b[1] - a[1]) * localT,
-                    a[2] + (b[2] - a[2]) * localT
-                };
-                break;
-            }
-
-            case Path::Scale:
-            {
-                const float* a = &ch.values[i0 * 3];
-                const float* b = &ch.values[i1 * 3];
-                node.scaleV = Vec3{
-                    a[0] + (b[0] - a[0]) * localT,
-                    a[1] + (b[1] - a[1]) * localT,
-                    a[2] + (b[2] - a[2]) * localT
-                };
-                break;
-            }
-
-            case Path::Rotation:
-            {
-                const float* a = &ch.values[i0 * 4];
-                const float* b = &ch.values[i1 * 4];
-                Quat qa{a[0], a[1], a[2], a[3]};
-                Quat qb{b[0], b[1], b[2], b[3]};
-                node.rotation = (ch.interp == Interp::Step) ? qa : QuatSlerp(qa, qb, localT);
-                break;
-            }
-        }
-    }
-}
-
-
-void Mesh::SkinData::ComputeJointMatrices()
-{
-    RecomputeGlobalTransforms();
-
-    jointMatrices.resize(joints.size() * 16);
-
-    for (size_t j = 0; j < joints.size(); ++j)
-    {
-        const float* global = nodes[joints[j].nodeIndex].global;
-        CameraMath::Multiply(&jointMatrices[j * 16], global, joints[j].inverseBind);
-    }
-}
-
-
-// ============================================================
-// SKINNING (CPU)
-// ============================================================
-
-void Mesh::ApplySkinningCPU()
-{
-    if (!skin || skin->jointMatrices.empty())
-        return;
-
-    size_t n = bindPoseVertices.size();
-    vertices.resize(n);
-
-    for (size_t i = 0; i < n; ++i)
-    {
-        const MeshVertex& src = bindPoseVertices[i];
-        const SkinVertex& sv  = skinVerts[i];
-        MeshVertex& dst = vertices[i];
-
-        dst.u = src.u;
-        dst.v = src.v;
-
-        float blend[16] = {0};
-        bool anyWeight = false;
-
-        for (int k = 0; k < 4; ++k)
-        {
-            float w = sv.weights[k];
-            if (w <= 0.0f)
-                continue;
-
-            unsigned short j = sv.joints[k];
-            if (j >= skin->joints.size())
-                continue; // malformed data - skip rather than read OOB
-
-            anyWeight = true;
-
-            const float* jm = &skin->jointMatrices[j * 16];
-            for (int e = 0; e < 16; ++e)
-                blend[e] += jm[e] * w;
-        }
-
-        // Vertices with no weight at all (shouldn't normally happen
-        // on a skinned mesh, but malformed exports exist) fall back
-        // to the identity blend, i.e. bind pose.
-        if (!anyWeight)
-            CameraMath::Identity(blend);
-
-        TransformPoint(blend, src.px, src.py, src.pz, dst.px, dst.py, dst.pz);
-        TransformDir(blend, src.nx, src.ny, src.nz, dst.nx, dst.ny, dst.nz);
-    }
-
-    verticesDirty = true;
-}
-
-
-int Mesh::GetAnimationCount() const
-{
-    return skin ? (int)skin->clips.size() : 0;
-}
-
-
-std::string Mesh::GetAnimationName(int index) const
-{
-    if (!skin || index < 0 || index >= (int)skin->clips.size())
-        return {};
-
-    return skin->clips[index].name;
-}
-
-
-bool Mesh::SetAnimation(int index, bool loop)
-{
-    if (!skin || index < 0 || index >= (int)skin->clips.size())
-        return false;
-
-    skin->activeClip     = index;
-    skin->rangeStart      = 0.0f;
-    skin->rangeEnd        = skin->clips[index].duration;
-    skin->clipTime        = 0.0f;
-    skin->playsRemaining  = loop ? -1 : 1;
-    skin->finished         = false;
-
-    // Snap to frame 0 immediately so the mesh doesn't render bind
-    // pose for a frame while waiting on the caller's next
-    // UpdateAnimation().
-    skin->Sample(0.0f);
-    skin->ComputeJointMatrices();
-    ApplySkinningCPU();
-
+    mesh.texture = tex;
+    mesh.ownsTexture = true;
     return true;
 }
 
-
-bool Mesh::SetAnimation(const std::string& name, bool loop)
-{
-    if (!skin)
-        return false;
-
-    for (size_t i = 0; i < skin->clips.size(); ++i)
-        if (skin->clips[i].name == name)
-            return SetAnimation((int)i, loop);
-
-    return false;
-}
-
-
-bool Mesh::PlayAnimation(
-    int frameStart, int frameEnd,
-    const std::string& animName,
-    int repeatTimes, float fps)
-{
-    if (!skin)
-        return false;
-
-    for (size_t i = 0; i < skin->clips.size(); ++i)
-        if (skin->clips[i].name == animName)
-            return PlayAnimation(frameStart, frameEnd, (int)i, repeatTimes, fps);
-
-    return false;
-}
-
-
-bool Mesh::PlayAnimation(
-    int frameStart, int frameEnd,
-    int index,
-    int repeatTimes, float fps)
-{
-    if (!skin || index < 0 || index >= (int)skin->clips.size() || fps <= 0.0f)
-        return false;
-
-    float duration = skin->clips[index].duration;
-
-    float startTime = (float)frameStart / fps;
-    float endTime = (frameEnd < 0) ? duration : ((float)frameEnd / fps);
-
-    if (startTime > endTime)
-        std::swap(startTime, endTime);
-
-    startTime = std::max(0.0f, std::min(startTime, duration));
-    endTime   = std::max(startTime, std::min(endTime, duration));
-
-    skin->activeClip     = index;
-    skin->rangeStart      = startTime;
-    skin->rangeEnd        = endTime;
-    skin->clipTime        = startTime;
-    skin->playsRemaining  = (repeatTimes <= 0) ? -1 : repeatTimes;
-    skin->finished         = false;
-
-    skin->Sample(startTime);
-    skin->ComputeJointMatrices();
-    ApplySkinningCPU();
-
-    return true;
-}
-
-
-bool Mesh::IsAnimationFinished() const
-{
-    return skin && skin->finished;
-}
-
-
-void Mesh::StopAnimation()
-{
-    if (skin)
-        skin->activeClip = -1;
-}
-
-
-void Mesh::UpdateAnimation(float deltaSeconds)
-{
-    if (!skin || skin->activeClip < 0 || skin->finished)
-        return;
-
-    skin->clipTime += deltaSeconds;
-
-    float rangeLen = skin->rangeEnd - skin->rangeStart;
-
-    if (skin->clipTime > skin->rangeEnd)
-    {
-        if (skin->playsRemaining < 0)
-        {
-            // Infinite loop - wrap back into [rangeStart, rangeEnd).
-            skin->clipTime = (rangeLen > 1e-6f)
-                ? skin->rangeStart + fmodf(skin->clipTime - skin->rangeStart, rangeLen)
-                : skin->rangeStart;
-        }
-        else
-        {
-            skin->playsRemaining--;
-
-            if (skin->playsRemaining > 0)
-            {
-                skin->clipTime = (rangeLen > 1e-6f)
-                    ? skin->rangeStart + fmodf(skin->clipTime - skin->rangeStart, rangeLen)
-                    : skin->rangeStart;
-            }
-            else
-            {
-                skin->clipTime = skin->rangeEnd;
-                skin->finished = true;
-            }
-        }
-    }
-
-    skin->Sample(skin->clipTime);
-    skin->ComputeJointMatrices();
-    ApplySkinningCPU();
-}
-
-
-// ============================================================
-// GLTF LOAD ENTRY POINT
-// ============================================================
-
-bool Mesh::LoadFromGLTF(const std::string& path)
-{
-    tinygltf::Model model;
-    tinygltf::TinyGLTF loader;
-    std::string err, warn;
-
-    // Required because TINYGLTF_NO_STB_IMAGE is defined at the top of
-    // this file - without registering a loader here, tinygltf has no
-    // image decoder at all and Load*() fails immediately with
-    // "No LoadImageData callback specified." the moment the file
-    // references any image (embedded or external).
-    loader.SetImageLoader(LoadImageDataWithFreeImage, nullptr);
-
-    bool ok = EndsWith(path, ".glb")
-        ? loader.LoadBinaryFromFile(&model, &err, &warn, path)
-        : loader.LoadASCIIFromFile(&model, &err, &warn, path);
-
-    if (!warn.empty())
-        printf("Mesh::LoadFromGLTF warning (%s): %s\n", path.c_str(), warn.c_str());
-
-    if (!ok)
-    {
-        printf("Mesh::LoadFromGLTF failed (%s): %s\n", path.c_str(), err.c_str());
-        return false;
-    }
-
-    if (model.meshes.empty() || model.meshes[0].primitives.empty())
-    {
-        printf("Mesh::LoadFromGLTF: no mesh/primitive found in %s\n", path.c_str());
-        return false;
-    }
-
-    // NOTE: only mesh[0]/primitive[0] is loaded, same limitation as
-    // before this change - multi-primitive meshes (e.g. one mesh
-    // split across several materials) will silently drop everything
-    // past the first primitive.
-    const tinygltf::Primitive& prim = model.meshes[0].primitives[0];
-
-    if (prim.mode != TINYGLTF_MODE_TRIANGLES)
-    {
-        printf("Mesh::LoadFromGLTF: only TRIANGLES primitives are supported\n");
-        return false;
-    }
-
-    auto posIt = prim.attributes.find("POSITION");
-    if (posIt == prim.attributes.end())
-    {
-        printf("Mesh::LoadFromGLTF: primitive has no POSITION attribute\n");
-        return false;
-    }
-
-    std::vector<float> positions, normals, uvs;
-
-    if (!ReadFloatAccessor(model, posIt->second, 3, positions))
-        return false;
-
-    size_t vertexCount = positions.size() / 3;
-
-    auto normIt = prim.attributes.find("NORMAL");
-    bool hasNormals = normIt != prim.attributes.end() &&
-        ReadFloatAccessor(model, normIt->second, 3, normals);
-
-    auto uvIt = prim.attributes.find("TEXCOORD_0");
-    bool hasUVs = uvIt != prim.attributes.end() &&
-        ReadFloatAccessor(model, uvIt->second, 2, uvs);
-
-    std::vector<MeshVertex> newVerts(vertexCount);
-
-    for (size_t i = 0; i < vertexCount; ++i)
-    {
-        MeshVertex& mv = newVerts[i];
-
-        mv.px = positions[i * 3 + 0];
-        mv.py = positions[i * 3 + 1];
-        mv.pz = positions[i * 3 + 2];
-
-        if (hasNormals)
-        {
-            mv.nx = normals[i * 3 + 0];
-            mv.ny = normals[i * 3 + 1];
-            mv.nz = normals[i * 3 + 2];
-        }
-        else
-        {
-            // No NORMAL attribute in the source file - default to
-            // "up" rather than a zero vector, which would make
-            // the lighting term degenerate (NaN-free, just flat).
-            mv.nx = 0.0f; mv.ny = 1.0f; mv.nz = 0.0f;
-        }
-
-        if (hasUVs)
-        {
-            mv.u = uvs[i * 2 + 0];
-            mv.v = uvs[i * 2 + 1];
-        }
-        else
-        {
-            mv.u = 0.0f; mv.v = 0.0f;
-        }
-    }
-
-    std::vector<unsigned short> newIndices;
-
-    if (prim.indices >= 0)
-    {
-        if (!ReadIndexAccessor(model, prim.indices, newIndices))
-            return false;
-    }
-    else if (vertexCount > 0xFFFF)
-    {
-        printf(
-            "Mesh::LoadFromGLTF: non-indexed primitive has more than 65535 "
-            "vertices, which GLES2's glDrawArrays index space can't address\n"
-        );
-        return false;
-    }
-
-    // ------------------------------------------------------------
-    // TEXTURE (base color only - PBR metallic/roughness/normal/
-    // emissive maps aren't read; extend here if you need them)
-    // ------------------------------------------------------------
-    if (prim.material >= 0 && prim.material < (int)model.materials.size())
-    {
-        const tinygltf::Material& mat = model.materials[prim.material];
-        int texIndex = mat.pbrMetallicRoughness.baseColorTexture.index;
-
-        if (texIndex >= 0 && texIndex < (int)model.textures.size())
-        {
-            int imageIndex = model.textures[texIndex].source;
-
-            if (imageIndex >= 0 && imageIndex < (int)model.images.size())
-            {
-                GLuint tex = CreateGLTextureFromImage(model.images[imageIndex]);
-
-                if (tex)
-                {
-                    if (ownsTexture && texture)
-                        glDeleteTextures(1, &texture);
-
-                    texture = tex;
-                    ownsTexture = true;
-                }
-            }
-        }
-    }
-
-    // ------------------------------------------------------------
-    // SKIN + BONE WEIGHTS
-    // ------------------------------------------------------------
-    auto jointsIt  = prim.attributes.find("JOINTS_0");
-    auto weightsIt = prim.attributes.find("WEIGHTS_0");
-
-    std::vector<unsigned short> jointsRaw;
-    std::vector<float> weightsRaw;
-
-    bool hasSkinAttribs =
-        jointsIt != prim.attributes.end() &&
-        weightsIt != prim.attributes.end() &&
-        ReadJointsAccessor(model, jointsIt->second, jointsRaw) &&
-        ReadWeightsAccessor(model, weightsIt->second, weightsRaw);
-
-    // Find the node referencing mesh[0] to get its skin index - glTF
-    // attaches skins to nodes, not meshes/primitives directly.
-    int skinIndex = -1;
-    if (hasSkinAttribs)
-    {
-        for (const tinygltf::Node& node : model.nodes)
-        {
-            if (node.mesh == 0 && node.skin >= 0)
-            {
-                skinIndex = node.skin;
-                break;
-            }
-        }
-    }
-
-    skin.reset();
-
-    if (hasSkinAttribs && skinIndex >= 0 && skinIndex < (int)model.skins.size())
-    {
-        const tinygltf::Skin& gltfSkin = model.skins[skinIndex];
-
-        if (gltfSkin.joints.size() > (size_t)kMaxJoints)
-        {
-            printf(
-                "Mesh::LoadFromGLTF: skin has %zu joints, exceeding the %d "
-                "joint limit - loading %s as a static (unskinned) mesh instead\n",
-                gltfSkin.joints.size(), kMaxJoints, path.c_str()
-            );
-        }
-        else
-        {
-            auto newSkin = std::unique_ptr<SkinData, SkinDataDeleter>(new SkinData());
-
-            // --- Full node hierarchy, needed to walk from any joint
-            // up to the skeleton root when computing global poses ---
-            newSkin->nodes.resize(model.nodes.size());
-
-            for (size_t i = 0; i < model.nodes.size(); ++i)
-            {
-                const tinygltf::Node& gn = model.nodes[i];
-                SkinData::Node& n = newSkin->nodes[i];
-
-                if (gn.translation.size() == 3)
-                    n.bindTranslation = Vec3{
-                        (float)gn.translation[0],
-                        (float)gn.translation[1],
-                        (float)gn.translation[2]};
-
-                if (gn.rotation.size() == 4)
-                    n.bindRotation = Quat{
-                        (float)gn.rotation[0], (float)gn.rotation[1],
-                        (float)gn.rotation[2], (float)gn.rotation[3]};
-
-                if (gn.scale.size() == 3)
-                    n.bindScale = Vec3{
-                        (float)gn.scale[0],
-                        (float)gn.scale[1],
-                        (float)gn.scale[2]};
-
-                // A node given as a raw 4x4 `matrix` instead of TRS
-                // isn't decomposed here - rare for animated rigs
-                // (Blender/Maya both export TRS), but if you hit one,
-                // decompose gn.matrix into T/R/S before this loop.
-
-                n.translation = n.bindTranslation;
-                n.rotation    = n.bindRotation;
-                n.scaleV      = n.bindScale;
-            }
-
-            for (size_t i = 0; i < model.nodes.size(); ++i)
-                for (int child : model.nodes[i].children)
-                    if (child >= 0 && child < (int)newSkin->nodes.size())
-                        newSkin->nodes[child].parent = (int)i;
-
-            // --- Joints + inverse bind matrices ---
-            std::vector<float> ibmFlat;
-            bool haveIBM =
-                gltfSkin.inverseBindMatrices >= 0 &&
-                ReadFloatAccessor(model, gltfSkin.inverseBindMatrices, 16, ibmFlat);
-
-            newSkin->joints.resize(gltfSkin.joints.size());
-
-            for (size_t j = 0; j < gltfSkin.joints.size(); ++j)
-            {
-                newSkin->joints[j].nodeIndex = gltfSkin.joints[j];
-
-                if (haveIBM)
-                {
-                    for (int e = 0; e < 16; ++e)
-                        newSkin->joints[j].inverseBind[e] = ibmFlat[j * 16 + e];
-                }
-                else
-                {
-                    CameraMath::Identity(newSkin->joints[j].inverseBind);
-                }
-            }
-
-            // --- Animation clips ---
-            newSkin->clips.reserve(model.animations.size());
-
-            for (const tinygltf::Animation& ga : model.animations)
-            {
-                SkinData::Clip clip;
-                clip.name = ga.name;
-
-                for (const tinygltf::AnimationChannel& gc : ga.channels)
-                {
-                    if (gc.target_node < 0 || gc.target_node >= (int)newSkin->nodes.size())
-                        continue;
-
-                    if (gc.sampler < 0 || gc.sampler >= (int)ga.samplers.size())
-                        continue;
-
-                    const tinygltf::AnimationSampler& sampler = ga.samplers[gc.sampler];
-
-                    SkinData::Channel channel;
-                    channel.nodeIndex = gc.target_node;
-
-                    if (gc.target_path == "translation")
-                        channel.path = SkinData::Path::Translation;
-                    else if (gc.target_path == "rotation")
-                        channel.path = SkinData::Path::Rotation;
-                    else if (gc.target_path == "scale")
-                        channel.path = SkinData::Path::Scale;
-                    else
-                        continue; // "weights" (morph targets) not supported
-
-                    if (sampler.interpolation == "STEP")
-                        channel.interp = SkinData::Interp::Step;
-                    else
-                        // CUBICSPLINE falls back to linear between the
-                        // in-tangent/value/out-tangent triplet's middle
-                        // value - not exact, but avoids misreading the
-                        // accessor as if it were plain keyframes.
-                        channel.interp = SkinData::Interp::Linear;
-
-                    ReadFloatAccessor(model, sampler.input, 1, channel.times);
-
-                    int comps = (channel.path == SkinData::Path::Rotation) ? 4 : 3;
-                    ReadFloatAccessor(model, sampler.output, comps, channel.values);
-
-                    if (!channel.times.empty())
-                        clip.duration = std::max(clip.duration, channel.times.back());
-
-                    clip.channels.push_back(std::move(channel));
-                }
-
-                newSkin->clips.push_back(std::move(clip));
-            }
-
-            skin = std::move(newSkin);
-        }
-    }
-
-    // Per-vertex joint indices/weights - kept regardless of whether
-    // `skin` ended up set (e.g. malformed skin index), just unused
-    // in that case.
-    skinVerts.assign(vertexCount, SkinVertex{});
-
-    if (hasSkinAttribs)
-    {
-        for (size_t i = 0; i < vertexCount; ++i)
-        {
-            SkinVertex& sv = skinVerts[i];
-
-            for (int c = 0; c < 4; ++c)
-            {
-                sv.joints[c]  = jointsRaw[i * 4 + c];
-                sv.weights[c] = weightsRaw[i * 4 + c];
-            }
-        }
-    }
-
-    vertices = std::move(newVerts);
-    indices  = std::move(newIndices);
-
-    if (skin)
-    {
-        bindPoseVertices = vertices; // unskinned copy, re-blended from every frame
-        skin->activeClip = -1;
-        skin->clipTime = 0.0f;
-        skin->Sample(0.0f); // bind pose is already correct until SetAnimation() is called
-    }
-    else
-    {
-        bindPoseVertices.clear();
-        skinVerts.clear();
-    }
-
-    uploaded = false; // force re-upload next draw()
-    verticesDirty = false;
-
-    return true;
-}
-
-}
+} // namespace Absolut

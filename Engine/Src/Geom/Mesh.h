@@ -15,7 +15,7 @@ namespace Absolut
 //
 // Layout uploaded to the GPU for every Mesh, whether it came
 // from a procedural generator (CreateCube/CreatePyramid/etc),
-// was loaded from a glTF file via LoadFromGLTF(), or is a
+// was loaded from an FBX/OBJ file via Load(), or is a
 // skinned mesh being re-uploaded every frame. Matches the
 // aPosition/aNormal/aTexCoord attributes bound in Mesh.cpp.
 //
@@ -38,7 +38,7 @@ public:
     Mesh() = default;
     ~Mesh();
 
-    // Owns GL buffer objects (and, if loaded from glTF, possibly a
+    // Owns GL buffer objects (and, if loaded from FBX/OBJ, possibly a
     // GL texture) - move-only, no implicit copies.
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
@@ -75,16 +75,11 @@ public:
         float depth = 1.0f
     );
 
-    // Loads mesh[0]/primitive[0] geometry from a .gltf/.glb file.
-    // If the primitive's material has a baseColorTexture, it is
-    // decoded and uploaded as a GL texture (owned by this Mesh,
-    // replacing whatever `texture` was previously set). If the
-    // node that references the mesh has a skin, joint weights and
-    // animation clips are loaded too - see GetAnimationCount() /
-    // SetAnimation() / UpdateAnimation() below. Skins with more
-    // than kMaxJoints joints are loaded as a static mesh instead
-    // (logged, not a hard failure).
-    bool LoadFromGLTF(const std::string& path);
+    // Loads FBX or OBJ through ufbx.
+    bool Load(const std::string& path);
+
+    // Replaces the current model texture without changing geometry or UVs.
+    bool SourceTexture(const std::string& source, const std::string& texturePath);
 
     // --------------------------------------------------------
     // TRANSFORM
@@ -111,7 +106,7 @@ public:
     // --------------------------------------------------------
     // SKINNING / ANIMATION
     //
-    // Only meaningful if LoadFromGLTF() found a skin (check
+    // Only meaningful if Load() found a skin (check
     // GetAnimationCount() > 0). Skinning is computed on the CPU
     // every UpdateAnimation() call and re-uploaded via
     // glBufferSubData - deliberately, since GLES2 doesn't
@@ -190,7 +185,7 @@ private:
     GLuint ibo = 0;
     bool uploaded = false;
 
-    // True once LoadFromGLTF() created `texture` itself (rather than
+    // True once Load() created `texture` itself (rather than
     // the caller assigning an externally-owned GL texture) - only
     // then does this Mesh delete it in releaseGL()/on destruction.
     bool ownsTexture = false;
@@ -256,6 +251,8 @@ private:
         std::vector<MeshVertex> verts,
         std::vector<unsigned short> idx
     );
+
+    friend bool LoadUFBXModel(Mesh& mesh, const std::string& path);
 };
 
 }

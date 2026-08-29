@@ -33,13 +33,13 @@ int main()
     Absolut::myModel.position = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.rotation = {0.0f, 0.0f, 0.0f};
     Absolut::myModel.scale    = {1.0f, 1.0f, 1.0f};
-    Absolut::myModel.useLighting = true;
+    Absolut::myModel.useLighting = false;
 
     // --- start playing an animation, if the model has one ---
     if (Absolut::myModel.GetAnimationCount() > 0)
     {
-        printf("Playing: %s\n", Absolut::myModel.GetAnimationName(1).c_str());
-        Absolut::myModel.SetAnimation(1, true);
+        printf("Playing: %s\n", Absolut::myModel.GetAnimationName(5).c_str());
+        Absolut::myModel.SetAnimation(5, true);
  // index 0, looping
     }
 
