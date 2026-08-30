@@ -120,7 +120,7 @@ public:
 
         mesh.useLighting = useLighting;
 
-        mesh.enableCulling = enableCulling;
+
     }
 
     // ------------------------------------------------------------

@@ -107,6 +107,10 @@
 		<Unit filename="Engine/Src/Window/Window.h" />
 		<Unit filename="Engine/dependencies/engineincludes.h" />
 		<Unit filename="Engine/dependencies/include.h" />
+		<Unit filename="Engine/dependencies/ufbx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Engine/dependencies/ufbx.h" />
 		<Unit filename="GameScripts/Init.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>

@@ -1,14 +1,15 @@
 # depslib dependency file v1.0
-1787236019 source:c:\developmentfiles\absolutengine\main.cpp
+1788077398 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	"Engine/dependencies/engineincludes.h"
 	<chrono>
 	<cmath>
+	<cstdio>
 
 1786101981 c:\developmentfiles\absolutengine\engine\math\vec2.h
 
-1787287181 c:\developmentfiles\absolutengine\engine\dependencies\engineincludes.h
+1788077681 c:\developmentfiles\absolutengine\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -27,13 +28,14 @@
 	"Geom/Box3.h"
 	"Engine/Src/Image/Font.h"
 	"Math/Collision.h"
+	"Log/Event.h"
 
 1786700095 c:\developmentfiles\absolutengine\\engine\src\math\vec2.h
 
 1786273554 c:\developmentfiles\absolutengine\\engine\src\log\log.h
 	"Engine/dependencies/include.h"
 
-1788005019 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
+1788075143 c:\developmentfiles\absolutengine\\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -84,7 +86,7 @@
 	<_mingw.h>
 	<stddef.h>
 
-1788005019 c:\developmentfiles\absolutengine\engine\dependencies\include.h
+1788075143 c:\developmentfiles\absolutengine\engine\dependencies\include.h
 	<cmath>
 	<stdio.h>
 	<time.h>
@@ -409,7 +411,7 @@
 
 1786542172 c:\developmentfiles\absolutengine\\engine\src\image\texture.h
 
-1786271413 c:\developmentfiles\absolutengine\\engine\dependencies\stb_image.h
+1788075156 c:\developmentfiles\absolutengine\\engine\dependencies\stb_image.h
 	"stb_image.h"
 	<stdio.h>
 	<stdlib.h>
@@ -892,7 +894,7 @@
 1786809197 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1787287181 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1788077681 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -911,13 +913,14 @@
 	"Geom/Box3.h"
 	"Engine/Src/Image/Font.h"
 	"Math/Collision.h"
+	"Log/Event.h"
 
 1787140746 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
 
-1787235498 c:\developmentfiles\absolutengine\gamescripts\init.h
+1788076690 c:\developmentfiles\absolutengine\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1786357897 c:\developmentfiles\absolutengine\gamescripts\deltatime.h
@@ -1163,20 +1166,21 @@
 	<ext/stdio_filebuf.h>
 	"TargetConditionals.h"
 
-1787133587 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
+1788076936 source:c:\developmentfiles\absolutengine\engine\src\geom\mesh.cpp
 	"Mesh.h"
+	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
+	<FreeImage.h>
 	<cmath>
 	<cstdio>
 	<algorithm>
 	<functional>
-	<utility>
 
-1788003059 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
-	"Engine/dependencies/include.h"
+1788076681 c:\developmentfiles\absolutengine\engine\src\geom\mesh.h
 	<string>
 	<vector>
 	<memory>
+	"Engine/dependencies/include.h"
 	"Math/Vector.h"
 
 1786793449 source:c:\developmentfiles\absolutengine\engine\src\input\inputmouse.cpp
@@ -1186,12 +1190,12 @@
 1787140746 c:\developmentfiles\absolutengine\engine\src\input\inputmouse.h
 	<windows.h>
 
-1787052255 c:\developmentfiles\absolutengine\engine\src\geom\box3.h
+1788076294 c:\developmentfiles\absolutengine\engine\src\geom\box3.h
 	"include.h"
 	"Mesh.h"
 	"Math/Vector.h"
 
-1786271413 c:\developmentfiles\absolutengine\engine\dependencies\stb_image.h
+1788075156 c:\developmentfiles\absolutengine\engine\dependencies\stb_image.h
 	"stb_image.h"
 	<stdio.h>
 	<stdlib.h>
@@ -1313,4 +1317,26 @@
 	<stddef.h>
 	<stdbool.h>
 	<assert.h>
+
+1788002975 source:c:\developmentfiles\absolutengine\engine\dependencies\ufbx.c
+	"ufbx.h"
+	<stdarg.h>
+	<float.h>
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<xmmintrin.h>
+	<emmintrin.h>
+	<new>
+	<atomic>
+	<stdatomic.h>
+
+1788003058 c:\developmentfiles\absolutengine\engine\src\geom\meshformats.h
+	<string>
+
+1788077663 c:\developmentfiles\absolutengine\engine\src\log\event.h
+	<iostream>
+	<functional>
+	<vector>
 

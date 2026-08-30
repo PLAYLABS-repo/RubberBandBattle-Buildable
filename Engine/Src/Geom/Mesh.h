@@ -1,11 +1,26 @@
 #pragma once
 
-#include "Engine/dependencies/include.h"
 #include <string>
 #include <vector>
 #include <memory>
 
-#include "Math/Vector.h"   // Vec3
+#define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_NO_STB_IMAGE
+#define TINYGLTF_NO_INCLUDE_STB_IMAGE
+// NOTE: stb_image (read) support is NOT disabled here, on purpose -
+// LoadFromGLTF() now decodes embedded/external glTF textures via
+// tinygltf, which uses stb_image.h under the hood. Make sure
+// stb_image.h is sitting next to tiny_gltf.h on your include path,
+// or texture loading will silently produce empty images.
+//
+// FreeImage is used separately by GLTFApplyTex() (see Mesh.cpp) to
+// decode textures loaded from an arbitrary directory on disk. Link
+// against FreeImage and make sure FreeImage.h is on your include
+// path.
+
+#include "Engine/dependencies/include.h"
+#include "Math/Vector.h"
 
 namespace Absolut
 {
@@ -15,7 +30,7 @@ namespace Absolut
 //
 // Layout uploaded to the GPU for every Mesh, whether it came
 // from a procedural generator (CreateCube/CreatePyramid/etc),
-// was loaded from an FBX/OBJ file via Load(), or is a
+// was loaded from a glTF file via LoadFromGLTF(), or is a
 // skinned mesh being re-uploaded every frame. Matches the
 // aPosition/aNormal/aTexCoord attributes bound in Mesh.cpp.
 //
@@ -38,14 +53,24 @@ public:
     Mesh() = default;
     ~Mesh();
 
-    // Owns GL buffer objects (and, if loaded from FBX/OBJ, possibly a
+    // Owns GL buffer objects (and, if loaded from glTF, possibly a
     // GL texture) - move-only, no implicit copies.
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
     Mesh(Mesh&& other) noexcept;
     Mesh& operator=(Mesh&& other) noexcept;
 
-    // --------------------------------------------------------
+ bool enableCulling = true;
+
+    void SetCulling(bool enabled)
+    {
+        enableCulling = enabled;
+    }
+
+    bool GetCulling() const
+    {
+        return enableCulling;
+    }
     // PROCEDURAL PRIMITIVES
     //
     // All are centered on the local origin so position/rotate/
@@ -75,11 +100,34 @@ public:
         float depth = 1.0f
     );
 
-    // Loads FBX or OBJ through ufbx.
-    bool Load(const std::string& path);
+    // Loads mesh[0]/primitive[0] geometry from a .gltf/.glb file.
+    // If the primitive's material has a baseColorTexture, it is
+    // decoded and uploaded as a GL texture (owned by this Mesh,
+    // replacing whatever `texture` was previously set). If the
+    // node that references the mesh has a skin, joint weights and
+    // animation clips are loaded too - see GetAnimationCount() /
+    // SetAnimation() / UpdateAnimation() below. Skins with more
+    // than kMaxJoints joints are loaded as a static mesh instead
+    // (logged, not a hard failure).
+    bool LoadFromGLTF(const std::string& path);
 
-    // Replaces the current model texture without changing geometry or UVs.
-    bool SourceTexture(const std::string& source, const std::string& texturePath);
+    // Re-parses gltfName to find its mesh[0]/primitive[0] material's
+    // baseColorTexture, then loads that image via FreeImage using its
+    // filename resolved against textureDir instead of relative to
+    // gltfName, and applies it as this mesh's texture (replacing
+    // whatever LoadFromGLTF() set, if anything). Useful when textures
+    // have been repackaged into a different directory than the source
+    // glTF file, or you want FreeImage's broader format support
+    // (TGA/BMP/etc, not just PNG/JPG) for the replacement texture.
+    //
+    // If the referenced image is embedded (data URI / packed into a
+    // .glb buffer view rather than an external file), textureDir is
+    // ignored and the embedded image is used instead - there's
+    // nothing on disk under textureDir to prefer over it.
+    //
+    // Returns false (this mesh's texture left untouched) if the glTF
+    // file, its material, or the texture file can't be found/loaded.
+    bool GLTFApplyTex( const std::string& textureDir);
 
     // --------------------------------------------------------
     // TRANSFORM
@@ -101,12 +149,12 @@ public:
     // outward normal, so this is safe to leave on by default.
     // Turn off per-mesh if a loaded model (LoadFromGLTF) has
     // inconsistent winding and ends up disappearing/inside-out.
-    bool enableCulling = true;
+
 
     // --------------------------------------------------------
     // SKINNING / ANIMATION
     //
-    // Only meaningful if Load() found a skin (check
+    // Only meaningful if LoadFromGLTF() found a skin (check
     // GetAnimationCount() > 0). Skinning is computed on the CPU
     // every UpdateAnimation() call and re-uploaded via
     // glBufferSubData - deliberately, since GLES2 doesn't
@@ -127,45 +175,6 @@ public:
     bool SetAnimation(int index, bool loop = true);
     bool SetAnimation(const std::string& name, bool loop = true);
 
-    // Plays a sub-range of a clip, addressed by FRAME NUMBER rather
-    // than seconds. frameStart/frameEnd are converted to seconds
-    // internally as frame / fps - fps does NOT change playback
-    // speed, it only tells this call how to interpret the frame
-    // numbers. Match it to whatever your DCC tool (Blender/Maya)
-    // used at export (commonly 24 or 30 fps - check your export
-    // settings if the range looks off).
-    //
-    // Pass frameEnd = -1 to play to the end of the clip's full
-    // duration.
-    //
-    // repeatTimes:
-    //   <= 0  -> loop the range forever (same as SetAnimation(..., true))
-    //    N>0  -> play the range exactly N times, then freeze on its
-    //            last frame - check IsAnimationFinished()
-    //
-    // Returns false (no-op) if this mesh has no skin, the clip
-    // name/index doesn't exist, or fps <= 0.
-    bool PlayAnimation(
-        int frameStart,
-        int frameEnd,
-        const std::string& animName,
-        int repeatTimes = 0,
-        float fps = 30.0f
-    );
-
-    bool PlayAnimation(
-        int frameStart,
-        int frameEnd,
-        int index,
-        int repeatTimes = 0,
-        float fps = 30.0f
-    );
-
-    // True once a PlayAnimation()/SetAnimation(..., false) call has
-    // played out all its repeats and frozen on the last frame of
-    // its range. Always false for looping playback.
-    bool IsAnimationFinished() const;
-
     // Freezes on whatever pose is currently displayed.
     void StopAnimation();
 
@@ -185,9 +194,10 @@ private:
     GLuint ibo = 0;
     bool uploaded = false;
 
-    // True once Load() created `texture` itself (rather than
-    // the caller assigning an externally-owned GL texture) - only
-    // then does this Mesh delete it in releaseGL()/on destruction.
+    // True once LoadFromGLTF()/GLTFApplyTex() created `texture` itself
+    // (rather than the caller assigning an externally-owned GL
+    // texture) - only then does this Mesh delete it in releaseGL()/on
+    // destruction.
     bool ownsTexture = false;
 
     // ----------------------------------------------------------
@@ -251,8 +261,6 @@ private:
         std::vector<MeshVertex> verts,
         std::vector<unsigned short> idx
     );
-
-    friend bool LoadUFBXModel(Mesh& mesh, const std::string& path);
 };
 
 }

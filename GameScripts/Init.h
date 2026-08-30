@@ -10,6 +10,8 @@ namespace Absolut{
 text.LoadFont("Resources/Font/Confale.ttf", 32);   // path + pixel size
 text.SetProjection(ScenePreview.getWidth(), ScenePreview.getHeight());
    Absolut::myModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");      // match your viewport
+  Absolut::myModel.GLTFApplyTex( "Resources/Skins/KifferTeamRed.png");
+
 text.SetColor(1.0f, 1.0f, 1.0f, 1.0f);                // white, opaque
 
 
