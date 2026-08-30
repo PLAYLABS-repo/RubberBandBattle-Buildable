@@ -2,7 +2,7 @@
 #include "Engine/Initialize/HelloInitializer.h"
 #include "GameScripts/Init.h"
 #include "Engine/dependencies/engineincludes.h"
-
+#include "GameScripts/RenderHandling/GroundPlane.h"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -62,7 +62,11 @@ int main()
     Absolut::cube.r = 0.8f;
     Absolut::cube.g = 0.2f;
     Absolut::cube.b = 0.2f;
-
+    Absolut::Mesh ground = Absolut::Mesh::CreateCube(1.0f);
+ground.CreateCube(1.0f);
+ground.position = {0,0,0};
+ground.scale = {500, 0, 400};
+ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     Absolut::cube.useLighting = true;
 
     // ============================================================
@@ -132,6 +136,7 @@ int main()
 
     while (Absolut::ScenePreview.update())
     {
+
         // --------------------------------------------------------
         // DELTA TIME
         // --------------------------------------------------------
@@ -303,12 +308,12 @@ Absolut::Log(
 
         // FBX MODEL
         Absolut::myModel.draw();
-
+      ground.draw();
         // --------------------------------------------------------
         // RESTORE 2D STATE FOR TEXT
         // --------------------------------------------------------
 
-        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST); //Add 2d objects after this
         glDisable(GL_CULL_FACE);
 
         Absolut::text.SetProjection(
