@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1788079803 source:c:\developmentfiles\absolutengine\main.cpp
+1788083645 source:c:\developmentfiles\absolutengine\main.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"GameScripts/Init.h"
 	"Engine/dependencies/engineincludes.h"
 	"GameScripts/RenderHandling/GroundPlane.h"
+	"GameScripts/Entity/Player/Player.h"
 	<chrono>
 	<cmath>
 	<cstdio>
@@ -1341,5 +1342,9 @@
 	<functional>
 	<vector>
 
-1788079936 c:\developmentfiles\absolutengine\gamescripts\renderhandling\groundplane.h
+1788080097 c:\developmentfiles\absolutengine\gamescripts\renderhandling\groundplane.h
+
+1788083869 c:\developmentfiles\absolutengine\gamescripts\entity\player\player.h
+	"Engine/dependencies/include.h"
+	<chrono>
 

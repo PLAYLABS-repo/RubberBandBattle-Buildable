@@ -3,6 +3,7 @@
 #include "GameScripts/Init.h"
 #include "Engine/dependencies/engineincludes.h"
 #include "GameScripts/RenderHandling/GroundPlane.h"
+#include "GameScripts/Entity/Player/Player.h"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -39,9 +40,7 @@ int main()
 
     Absolut::SceneCamera.mode =
         Absolut::ProjectionMode::Perspective;
-
-    Absolut::SceneCamera.position =
-        Absolut::Vec3(0.0f, 1.5f, 8.0f);
+Player Player;
 
     Absolut::SceneCamera.perspNear = 0.1f;
     Absolut::SceneCamera.perspFar  = 1000.0f;
@@ -65,7 +64,7 @@ int main()
     Absolut::Mesh ground = Absolut::Mesh::CreateCube(1.0f);
 ground.CreateCube(1.0f);
 ground.position = {0,0,0};
-ground.scale = {500, 0, 400};
+ground.scale = {100, 0, 100};
 ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     Absolut::cube.useLighting = true;
 
@@ -137,15 +136,13 @@ ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     while (Absolut::ScenePreview.update())
     {
 
+Absolut::SceneCamera.position =
+        Absolut::Vec3(Player.position.x ,Player.position.y + 4.0f, Player.position.z + 7.5f);
+        Absolut::SceneCamera.pitch = 20;
         // --------------------------------------------------------
         // DELTA TIME
         // --------------------------------------------------------
-Absolut::Log(
-    ("Camera Position: X=" + std::to_string(Absolut::SceneCamera.position.x) +
-     " Y=" + std::to_string(Absolut::SceneCamera.position.y) +
-     " Z=" + std::to_string(Absolut::SceneCamera.position.z)+  "\n").c_str()
 
-);
         auto now =
             std::chrono::steady_clock::now();
 
@@ -184,116 +181,13 @@ Absolut::Log(
         // MOUSE
         // --------------------------------------------------------
 
-        Absolut::Mouse::Get().Update();
+        //Absolut::Mouse::Get().Update();
 
-        const float mouseSensitivity = 0.15f;
 
-        Absolut::SceneCamera.yaw +=
-            Absolut::Mouse::Get().deltaX *
-            mouseSensitivity;
 
-        Absolut::SceneCamera.pitch +=
-            Absolut::Mouse::Get().deltaY *
-            mouseSensitivity;
+         Player.UpdatePlayer(deltaSeconds);
+           Absolut::myModel.position = Player.position;
 
-        if (Absolut::SceneCamera.pitch > 89.0f)
-            Absolut::SceneCamera.pitch = 89.0f;
-
-        if (Absolut::SceneCamera.pitch < -89.0f)
-            Absolut::SceneCamera.pitch = -89.0f;
-
-        // --------------------------------------------------------
-        // MOVEMENT
-        // --------------------------------------------------------
-
-        float yawRad =
-            Absolut::SceneCamera.yaw *
-            3.14159265f /
-            180.0f;
-
-        Absolut::Vec3 forward(
-            sinf(yawRad),
-            0.0f,
-            -cosf(yawRad)
-        );
-
-        Absolut::Vec3 right(
-            cosf(yawRad),
-            0.0f,
-            sinf(yawRad)
-        );
-
-        float moveSpeed =
-            3.0f * deltaSeconds;
-
-        if (Absolut::KeyDown('W'))
-        {
-            Absolut::SceneCamera.position.x +=
-                forward.x * moveSpeed;
-
-            Absolut::SceneCamera.position.z +=
-                forward.z * moveSpeed;
-        }
-
-        if (Absolut::KeyDown('S'))
-        {
-            Absolut::SceneCamera.position.x -=
-                forward.x * moveSpeed;
-
-            Absolut::SceneCamera.position.z -=
-                forward.z * moveSpeed;
-        }
-
-        if (Absolut::KeyDown('A'))
-        {
-            Absolut::SceneCamera.position.x -=
-                right.x * moveSpeed;
-
-            Absolut::SceneCamera.position.z -=
-                right.z * moveSpeed;
-        }
-
-        if (Absolut::KeyDown('D'))
-        {
-            Absolut::SceneCamera.position.x +=
-                right.x * moveSpeed;
-
-            Absolut::SceneCamera.position.z +=
-                right.z * moveSpeed;
-        }
-
-        if (Absolut::KeyDown(VK_SPACE))
-        {
-            Absolut::SceneCamera.position.y +=
-                moveSpeed;
-        }
-
-        if (Absolut::KeyDown(VK_SHIFT))
-        {
-            Absolut::SceneCamera.position.y -=
-                moveSpeed;
-        }
-
-        // --------------------------------------------------------
-        // ESC / MOUSE LOCK
-        // --------------------------------------------------------
-
-        if (Absolut::KeyDown(VK_ESCAPE) && mouseLocked)
-        {
-            Absolut::Mouse::Get().EnableFPSMode(false);
-            mouseLocked = false;
-        }
-
-        if (Absolut::Mouse::Get().isLDown &&
-            !mouseLocked)
-        {
-            Absolut::Mouse::Get().EnableFPSMode(true);
-            mouseLocked = true;
-        }
-
-        // --------------------------------------------------------
-        // UPDATE FBX ANIMATION
-        // --------------------------------------------------------
 
         Absolut::myModel.UpdateAnimation(
             deltaSeconds
@@ -349,8 +243,7 @@ Absolut::Log(
         Absolut::cube.rotation.y +=
             60.0f * deltaSeconds;
 
-        Absolut::myModel.rotation.y +=
-            30.0f * deltaSeconds;
+
     }
 
     // ============================================================
