@@ -1,7 +1,7 @@
 #include "Engine/dependencies/include.h"
 namespace Absolut{
 
- inline  Absolut::Mesh myModel;
+  inline  Absolut::Mesh Player;
      Absolut::Text text;
 
      extern Absolut::Mesh cube = Absolut::Mesh::CreateCube(1.5f);
@@ -9,9 +9,18 @@ namespace Absolut{
 
 text.LoadFont("Resources/Font/Confale.ttf", 32);   // path + pixel size
 text.SetProjection(ScenePreview.getWidth(), ScenePreview.getHeight());
-   Absolut::myModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");      // match your viewport
-  Absolut::myModel.GLTFApplyTex( "Resources/Skins/KifferTeamRed.png");
+   Absolut::Player.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");      // match your viewport
+  Absolut::Player.GLTFApplyTex( "Resources/Skins/KifferTeamRed.png");
+Absolut::Player.position =
+        Absolut::Vec3(0.0f, 0.0f, 0.0f);
 
+    Absolut::Player.rotation =
+        Absolut::Vec3(0.0f, 0.0f, 0.0f);
+
+    Absolut::Player.scale =
+        Absolut::Vec3(1.0f, 1.0f, 1.0f);
+
+    Absolut::Player.useLighting = false;
 text.SetColor(1.0f, 1.0f, 1.0f, 1.0f);                // white, opaque
 
 

@@ -13,7 +13,7 @@ Absolut::Camera SceneCamera;
 
 extern Audio AudioSystem;
   AudioSystem.Init();
-    ScenePreview.create("ScenePreview", 1280, 720);
+    ScenePreview.create("Winshell-RBB", 1280, 720);
 
 
     ScenePreview.setVSync(true);

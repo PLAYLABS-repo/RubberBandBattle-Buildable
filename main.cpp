@@ -40,48 +40,16 @@ int main()
 
     Absolut::SceneCamera.mode =
         Absolut::ProjectionMode::Perspective;
-Player Player;
+RubberBandBattle::Player Player;
 
-    Absolut::SceneCamera.perspNear = 0.1f;
-    Absolut::SceneCamera.perspFar  = 1000.0f;
 
-    // ============================================================
-    // CUBE
-    // ============================================================
-
-    Absolut::cube.position =
-        Absolut::Vec3(-2.0f, 0.0f, 0.0f);
-
-    Absolut::cube.rotation =
-        Absolut::Vec3(0.0f, 0.0f, 0.0f);
-
-    Absolut::cube.scale =
-        Absolut::Vec3(1.0f, 1.0f, 1.0f);
-
-    Absolut::cube.r = 0.8f;
-    Absolut::cube.g = 0.2f;
-    Absolut::cube.b = 0.2f;
-    Absolut::Mesh ground = Absolut::Mesh::CreateCube(1.0f);
-ground.CreateCube(1.0f);
-ground.position = {0,0,0};
-ground.scale = {100, 0, 100};
-ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
-    Absolut::cube.useLighting = true;
+  RubberBandBattle::GroundInit(150, 150);
 
     // ============================================================
     // FBX MODEL
     // ============================================================
 
-    Absolut::myModel.position =
-        Absolut::Vec3(0.0f, 0.0f, 0.0f);
 
-    Absolut::myModel.rotation =
-        Absolut::Vec3(0.0f, 0.0f, 0.0f);
-
-    Absolut::myModel.scale =
-        Absolut::Vec3(1.0f, 1.0f, 1.0f);
-
-    Absolut::myModel.useLighting = false;
 
     // Leave culling OFF while testing the FBX.
     // This prevents an incorrectly-wound FBX from disappearing.
@@ -92,7 +60,7 @@ ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     // ============================================================
 
     int animationCount =
-        Absolut::myModel.GetAnimationCount();
+        Absolut::Player.GetAnimationCount();
 
     printf("FBX animation count: %d\n", animationCount);
 
@@ -103,10 +71,10 @@ ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     {
         printf(
             "Playing animation: %s\n",
-            Absolut::myModel.GetAnimationName(0).c_str()
+            Absolut::Player.GetAnimationName(0).c_str()
         );
 
-        if (!Absolut::myModel.SetAnimation(0, true))
+        if (!Absolut::Player.SetAnimation(0, true))
         {
             //none
         }
@@ -117,7 +85,7 @@ ground.r = 0.0f;ground.g = 1.0f;ground.b = 0.0f;
     // ============================================================
 
     Absolut::AudioSystem.Loop(
-        "Resources/Sound/BackgroundMusic/EnterGame.mp3"
+        "Resources/Sound/BackgroundMusic/LoadingActionBG.wav"
     );
 
     // ============================================================
@@ -186,10 +154,10 @@ Absolut::SceneCamera.position =
 
 
          Player.UpdatePlayer(deltaSeconds);
-           Absolut::myModel.position = Player.position;
+           Absolut::Player.position = Player.position;
 
 
-        Absolut::myModel.UpdateAnimation(
+        Absolut::Player.UpdateAnimation(
             deltaSeconds
         );
 
@@ -198,11 +166,11 @@ Absolut::SceneCamera.position =
         // --------------------------------------------------------
 
         // Cube
-        Absolut::cube.draw();
+
 
         // FBX MODEL
-        Absolut::myModel.draw();
-      ground.draw();
+        Absolut::Player.draw();
+       RubberBandBattle::GroundDraw();
         // --------------------------------------------------------
         // RESTORE 2D STATE FOR TEXT
         // --------------------------------------------------------
@@ -239,9 +207,6 @@ Absolut::SceneCamera.position =
         // --------------------------------------------------------
         // TEST ROTATION
         // --------------------------------------------------------
-
-        Absolut::cube.rotation.y +=
-            60.0f * deltaSeconds;
 
 
     }

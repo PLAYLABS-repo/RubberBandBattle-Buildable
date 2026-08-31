@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Engine/dependencies/include.h"
+#include "GameScripts/RenderHandling/GroundPlane.h"
 #include <chrono>
-
+namespace RubberBandBattle{
 class Player
 {
 public:
@@ -14,16 +15,28 @@ public:
     float verticalVelocity;
     bool isGrounded;
 
+    int lastAnimation;
+    bool isJumping;
+    float jumpTimer;
+
     Player()
-        : position(0.0f, 0.0f, 0.0f),
+        : position(0.0f, -2.5f, 0.0f),
           collision(
               Absolut::Vec3(-0.5f, 0.0f, -0.5f),
               Absolut::Vec3(0.5f, 2.0f, 0.5f)
           ),
           verticalVelocity(0.0f),
-          isGrounded(true)
+          isGrounded(true),
+          lastAnimation(-1),
+          isJumping(false),
+          jumpTimer(0.0f)
     {
+        UpdateCollision();
     }
+
+    // ============================================================
+    // UPDATE COLLISION BOX
+    // ============================================================
 
     void UpdateCollision()
     {
@@ -35,88 +48,109 @@ public:
             )
         );
     }
- int lastAnimation = -1;
- bool isJumping = false;
- float jumpTimer = 0.0f;
 
-void UpdatePlayer(float dt)
-{
-    float speed = 5.0f;
-    float gravity = 20.0f;
-    float jumpForce = 8.0f;
+    void UpdatePlayer(float dt)
+    {
+        float speed = 5.0f;
+        float gravity = 20.0f;
+        float jumpForce = 8.0f;
 
-    bool moving =
-        Absolut::KeyDown('W') ||
-        Absolut::KeyDown('S') ||
-        Absolut::KeyDown('A') ||
-        Absolut::KeyDown('D');
+        bool moving =
+            Absolut::KeyDown('W') ||
+            Absolut::KeyDown('S') ||
+            Absolut::KeyDown('A') ||
+            Absolut::KeyDown('D');
 
-    // Movement
-    if (Absolut::KeyDown('W')) {
-        position.z -= speed * dt;
-         Absolut::myModel.rotation.y = 180.0f;
-    }
+        if (Absolut::KeyDown('W'))
+        {
+            position.z -= speed * dt;
+            Absolut::Player.rotation.y = 180.0f;
+        }
 
-    if (Absolut::KeyDown('S')) {
-        position.z += speed * dt;
-         Absolut::myModel.rotation.y = 0.0f;
+        if (Absolut::KeyDown('S'))
+        {
+            position.z += speed * dt;
+            Absolut::Player.rotation.y = 0.0f;
+        }
 
-    }
+        if (Absolut::KeyDown('A'))
+        {
+            position.x -= speed * dt;
+            Absolut::Player.rotation.y = -90.0f;
+        }
 
-    if (Absolut::KeyDown('A')) {
-        position.x -= speed * dt;
-         Absolut::myModel.rotation.y = -90.0f;
-    }
+        if (Absolut::KeyDown('D'))
+        {
+            position.x += speed * dt;
+            Absolut::Player.rotation.y = 90.0f;
+        }
 
-    if (Absolut::KeyDown('D')) {
-        position.x += speed * dt;
-         Absolut::myModel.rotation.y = 90.0f;
-    }
 
-    // Jump
-    if (Absolut::KeyPressed(VK_SPACE) && isGrounded) {
-        verticalVelocity = jumpForce;
-        isGrounded = false;
+        if (Absolut::KeyPressed(VK_SPACE) && isGrounded)
+        {
+            verticalVelocity = jumpForce;
+            isGrounded = false;
 
-        isJumping = true;
-        jumpTimer = 0.0f;
+            isJumping = true;
+            jumpTimer = 0.0f;
 
-        Absolut::myModel.SetAnimation(1, false);
-        lastAnimation = 1;
-    }
+            Absolut::Player.SetAnimation(1, false);
+            lastAnimation = 1;
+        }
 
-    // Gravity
-    if (!isGrounded) {
-        verticalVelocity -= gravity * dt;
-        position.y += verticalVelocity * dt;
-    }
+        if (!isGrounded)
+        {
+            verticalVelocity -= gravity * dt;
+            position.y += verticalVelocity * dt;
+        }
 
-    // Ground
-    if (position.y <= 0.0f) {
-        position.y = 0.0f;
-        verticalVelocity = 0.0f;
-        isGrounded = true;
-    }
+        UpdateCollision();
 
-    // Jump animation timer
-    if (isJumping) {
-        jumpTimer += dt;
+        if (GroundCollision(collision))
+        {
+            // Only resolve downward movement.
+            if (verticalVelocity <= 0.0f)
+            {
+                position.y = GroundTop();
 
-        if (jumpTimer >= 0.5f) {
-            isJumping = false;
+                verticalVelocity = 0.0f;
+                isGrounded = true;
+
+                UpdateCollision();
+            }
+        }
+        else
+        {
+            isGrounded = false;
+        }
+
+
+        if (isJumping)
+        {
+            jumpTimer += dt;
+
+            if (jumpTimer >= 0.5f)
+            {
+                isJumping = false;
+            }
+        }
+
+
+        if (!isJumping)
+        {
+            int animation = moving ? 4 : 0;
+
+            if (animation != lastAnimation)
+            {
+                Absolut::Player.SetAnimation(
+                    animation,
+                    true
+                );
+
+                lastAnimation = animation;
+            }
         }
     }
-
-    // Idle / walking animation
-    if (!isJumping) {
-        int animation = moving ? 4 : 0;
-
-        if (animation != lastAnimation) {
-            Absolut::myModel.SetAnimation(animation, true);
-            lastAnimation = animation;
-        }
-    }
-
-    UpdateCollision();
-}
 };
+
+}

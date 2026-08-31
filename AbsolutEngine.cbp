@@ -112,6 +112,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Engine/dependencies/ufbx.h" />
+		<Unit filename="GameScripts/Entity/Player/Player.h" />
 		<Unit filename="GameScripts/Init.h" />
 		<Unit filename="GameScripts/RenderHandling/GroundPlane.h" />
 		<Unit filename="main.cpp" />
