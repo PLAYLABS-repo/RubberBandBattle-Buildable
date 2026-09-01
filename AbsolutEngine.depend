@@ -896,7 +896,7 @@
 1788179487 c:\developmentfiles\absolutengine\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1788077681 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
+1788182742 c:\developmentfiles\absolutengine\\engine\dependencies\engineincludes.h
 	"Engine/Src/Log/Log.h"
 	"Engine/Src/Window/Window.h"
 	"Engine/GLES2Render/Render.h"
@@ -916,6 +916,7 @@
 	"Engine/Src/Image/Font.h"
 	"Math/Collision.h"
 	"Log/Event.h"
+	"Image/Interface.h"
 
 1787140746 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
@@ -1351,7 +1352,467 @@
 	"GameScripts/RenderHandling/GroundPlane.h"
 	<chrono>
 
-1788179249 c:\developmentfiles\absolutengine\\gamescripts\renderhandling\groundplane.h
+1788179734 c:\developmentfiles\absolutengine\\gamescripts\renderhandling\groundplane.h
 	"Engine/dependencies/include.h"
 	"Geom/Mesh.h"
+
+1788002975 source:c:\developmentfiles\absolutenginerbb\engine\dependencies\ufbx.c
+	"ufbx.h"
+	<stdarg.h>
+	<float.h>
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<xmmintrin.h>
+	<emmintrin.h>
+	<new>
+	<atomic>
+	<stdatomic.h>
+
+1788002968 c:\developmentfiles\absolutenginerbb\engine\dependencies\ufbx.h
+	<stdint.h>
+	<stddef.h>
+	<stdbool.h>
+	<assert.h>
+
+1788085179 source:c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.cpp
+	"HelloInitializer.h"
+
+1788179487 c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.h
+	"Engine/dependencies/engineincludes.h"
+
+1786700095 c:\developmentfiles\absolutenginerbb\engine\src\math\vector.h
+
+1786705006 c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.h
+	"Engine/dependencies/include.h"
+	"Engine/Src/Math/Vector.h"
+
+1788076681 c:\developmentfiles\absolutenginerbb\engine\src\geom\mesh.h
+	<string>
+	<vector>
+	<memory>
+	"Engine/dependencies/include.h"
+	"Math/Vector.h"
+
+1788076294 c:\developmentfiles\absolutenginerbb\engine\src\geom\box3.h
+	"include.h"
+	"Mesh.h"
+	"Math/Vector.h"
+
+1788075143 c:\developmentfiles\absolutenginerbb\engine\dependencies\include.h
+	<cmath>
+	<stdio.h>
+	<time.h>
+	<algorithm>
+	<iostream>
+	<windows.h>
+	<fstream>
+	<string>
+	<iterator>
+	<chrono>
+	<FreeImage.h>
+	"json.hpp"
+	"stb_truetype.h"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
+	"tiny_gltf.h"
+	"ufbx.h"
+
+1786271413 c:\developmentfiles\absolutenginerbb\engine\dependencies\json.hpp
+	<algorithm>
+	<cstddef>
+	<functional>
+	<initializer_list>
+	<iosfwd>
+	<iterator>
+	<memory>
+	<numeric>
+	<string>
+	<utility>
+	<vector>
+	<utility>
+	<algorithm>
+	<array>
+	<forward_list>
+	<iterator>
+	<map>
+	<string>
+	<tuple>
+	<type_traits>
+	<unordered_map>
+	<utility>
+	<valarray>
+	<cstddef>
+	<exception>
+	<stdexcept>
+	<string>
+	<vector>
+	<array>
+	<cstddef>
+	<cstdint>
+	<string>
+	<utility>
+	<type_traits>
+	<stdint.h>
+	<stdint.h>
+	<version>
+	<cstdlib>
+	<cassert>
+	<compare>
+	<cstddef>
+	<cstddef>
+	<type_traits>
+	<utility>
+	<limits>
+	<type_traits>
+	<utility>
+	<tuple>
+	<iterator>
+	<cstdint>
+	<map>
+	<memory>
+	<string>
+	<vector>
+	<cstring>
+	<string>
+	<utility>
+	<experimental/filesystem>
+	<filesystem>
+	<algorithm>
+	<iterator>
+	<string>
+	<tuple>
+	<type_traits>
+	<utility>
+	<valarray>
+	<vector>
+	<cstddef>
+	<iterator>
+	<string>
+	<tuple>
+	<utility>
+	<ranges>
+	<cstdint>
+	<tuple>
+	<utility>
+	<cstdint>
+	<cstddef>
+	<functional>
+	<algorithm>
+	<array>
+	<cmath>
+	<cstddef>
+	<cstdint>
+	<cstdio>
+	<cstring>
+	<iterator>
+	<limits>
+	<string>
+	<utility>
+	<vector>
+	<map>
+	<array>
+	<cstddef>
+	<cstring>
+	<iterator>
+	<memory>
+	<numeric>
+	<string>
+	<type_traits>
+	<utility>
+	<cstdio>
+	<istream>
+	<cstddef>
+	<string>
+	<utility>
+	<vector>
+	<array>
+	<clocale>
+	<cstddef>
+	<cstdio>
+	<cstdlib>
+	<initializer_list>
+	<string>
+	<utility>
+	<vector>
+	<cstdint>
+	<utility>
+	<string>
+	<cmath>
+	<cstdint>
+	<functional>
+	<string>
+	<utility>
+	<vector>
+	<cstddef>
+	<limits>
+	<iterator>
+	<type_traits>
+	<cstddef>
+	<iterator>
+	<utility>
+	<algorithm>
+	<cctype>
+	<cerrno>
+	<cstdlib>
+	<iosfwd>
+	<limits>
+	<numeric>
+	<string>
+	<utility>
+	<vector>
+	<initializer_list>
+	<utility>
+	<algorithm>
+	<array>
+	<map>
+	<cmath>
+	<cstdint>
+	<cstring>
+	<limits>
+	<string>
+	<utility>
+	<vector>
+	<algorithm>
+	<cstddef>
+	<iterator>
+	<memory>
+	<string>
+	<vector>
+	<ios>
+	<ostream>
+	<algorithm>
+	<array>
+	<clocale>
+	<cmath>
+	<cstddef>
+	<cstdint>
+	<cstdio>
+	<limits>
+	<string>
+	<iomanip>
+	<type_traits>
+	<utility>
+	<array>
+	<cmath>
+	<cstdint>
+	<cstring>
+	<limits>
+	<type_traits>
+	<functional>
+	<initializer_list>
+	<iterator>
+	<memory>
+	<stdexcept>
+	<type_traits>
+	<utility>
+	<vector>
+	<any>
+	<string_view>
+
+1786271413 c:\developmentfiles\absolutenginerbb\engine\dependencies\stb_truetype.h
+	"stb_truetype.h"
+	<stdio.h>
+	"stb_truetype.h"
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<string.h>
+	<string.h>
+
+1786708399 c:\developmentfiles\absolutenginerbb\engine\dependencies\tiny_gltf.h
+	<array>
+	<cassert>
+	<cmath>
+	<cstdint>
+	<cstdlib>
+	<cstring>
+	<functional>
+	<limits>
+	<map>
+	<string>
+	<utility>
+	<vector>
+	<android/asset_manager.h>
+	<algorithm>
+	<sys/stat.h>
+	<cstdio>
+	<fstream>
+	<sstream>
+	"tinygltf_json.h"
+	"json.hpp"
+	"document.h"
+	"prettywriter.h"
+	"rapidjson.h"
+	"stringbuffer.h"
+	"writer.h"
+	"draco/compression/decode.h"
+	"draco/core/decoder_buffer.h"
+	"stb_image.h"
+	"stb_image_write.h"
+	<Windows.h>
+	<windows.h>
+	<fcntl.h>
+	<ext/stdio_filebuf.h>
+	"TargetConditionals.h"
+
+1788075156 c:\developmentfiles\absolutenginerbb\engine\dependencies\stb_image.h
+	"stb_image.h"
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
+
+1787287243 c:\developmentfiles\absolutenginerbb\engine\src\math\collision.h
+	"Math/Vector.h"
+
+1788077663 c:\developmentfiles\absolutenginerbb\engine\src\log\event.h
+	<iostream>
+	<functional>
+	<vector>
+
+1788184151 c:\developmentfiles\absolutenginerbb\engine\src\image\interface.h
+	"Engine/dependencies/include.h"
+	"Engine/Src/Image/Texture.h"
+	"Engine/Src/Geom/Quad.h"
+	"Engine/Src/Input/InputMouse.h"
+
+1786711960 source:c:\developmentfiles\absolutenginerbb\engine\src\anim\anim.cpp
+	"Anim/Anim.h"
+	"Image/Texture.h"
+	"Image/Mapping.h"
+	"Engine/GLES2Render/CameraTransform.h"
+	"Geom/Quad.h"
+	"Engine/dependencies/include.h"
+	<cmath>
+	<fstream>
+
+1786705027 c:\developmentfiles\absolutenginerbb\engine\src\anim\anim.h
+	"Engine/dependencies/include.h"
+	"Math/Vector.h"
+	"Geom/Quad.h"
+
+1786542172 c:\developmentfiles\absolutenginerbb\engine\src\image\texture.h
+
+1786282951 c:\developmentfiles\absolutenginerbb\engine\src\image\mapping.h
+	"Engine/dependencies/include.h"
+
+1788076936 source:c:\developmentfiles\absolutenginerbb\engine\src\geom\mesh.cpp
+	"Mesh.h"
+	<GLES2/gl2.h>
+	"Engine/GLES2Render/CameraTransform.h"
+	<FreeImage.h>
+	<cmath>
+	<cstdio>
+	<algorithm>
+	<functional>
+
+1786712524 source:c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.cpp
+	"Quad.h"
+	<GLES2/gl2.h>
+	"Engine/GLES2Render/CameraTransform.h"
+	<cmath>
+	<cstdio>
+
+1787138119 source:c:\developmentfiles\absolutenginerbb\engine\src\image\font.cpp
+	"Font.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<vector>
+
+1787138118 c:\developmentfiles\absolutenginerbb\engine\src\image\font.h
+	"Engine/dependencies/include.h"
+
+1786282940 source:c:\developmentfiles\absolutenginerbb\engine\src\image\mapping.cpp
+	"Mapping.h"
+	"json.hpp"
+	<fstream>
+	<string>
+
+1787127529 source:c:\developmentfiles\absolutenginerbb\engine\src\image\texture.cpp
+	"Engine/dependencies/include.h"
+	"Texture.h"
+	<stdio.h>
+	<vector>
+
+1786793449 source:c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.cpp
+	"InputMouse.h"
+	<windowsx.h>
+
+1787140746 c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.h
+	<windows.h>
+
+1786809570 source:c:\developmentfiles\absolutenginerbb\engine\src\sound\sound.cpp
+	"Engine/dependencies/miniaudio.h"
+	"Sound.hpp"
+
+1786809573 c:\developmentfiles\absolutenginerbb\engine\src\sound\sound.hpp
+	"Engine/dependencies/miniaudio.h"
+
+1786532599 source:c:\developmentfiles\absolutenginerbb\engine\src\window\window.cpp
+	"Window.h"
+
+1786543906 c:\developmentfiles\absolutenginerbb\engine\src\window\window.h
+	"Engine/dependencies/include.h"
+	<GLES2/gl2.h>
+	<EGL/egl.h>
+
+1788243023 source:c:\developmentfiles\absolutenginerbb\main.cpp
+	"Engine/Initialize/HelloInitializer.h"
+	"GameScripts/Init.h"
+	"Engine/dependencies/engineincludes.h"
+	"GameScripts/RenderHandling/GroundPlane.h"
+	"GameScripts/Entity/Player/Player.h"
+	<chrono>
+	<cmath>
+	<cstdio>
+
+1788243061 c:\developmentfiles\absolutenginerbb\gamescripts\init.h
+	"Engine/dependencies/include.h"
+
+1788182742 c:\developmentfiles\absolutenginerbb\engine\dependencies\engineincludes.h
+	"Engine/Src/Log/Log.h"
+	"Engine/Src/Window/Window.h"
+	"Engine/GLES2Render/Render.h"
+	"Engine/GLES2Render/CameraTransform.h"
+	"Engine/Src/File/Load.h"
+	"Engine/Src/Geom/Quad.h"
+	"Engine/Src/Input/InputKeyboard.h"
+	"Engine/Src/Image/Texture.h"
+	"Engine/Src/Image/Mapping.h"
+	"Engine/Src/Anim/Anim.h"
+	"Engine/Src/Input/InputMouse.h"
+	"Engine/Src/Sound/Sound.hpp"
+	"Engine/Src/Math/Vector.h"
+	"Geom/Mesh.h"
+	"Engine/GLES2Render/CameraTransform.h"
+	"Geom/Box3.h"
+	"Engine/Src/Image/Font.h"
+	"Math/Collision.h"
+	"Log/Event.h"
+	"Image/Interface.h"
+
+1788179718 c:\developmentfiles\absolutenginerbb\gamescripts\renderhandling\groundplane.h
+	"Engine/dependencies/include.h"
+	"Geom/Mesh.h"
+
+1788242825 c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.h
+	"Engine/dependencies/include.h"
+	"../../RenderHandling/GroundPlane.h"
 

@@ -51,65 +51,23 @@ RubberBandBattle::Player Player;
 
 
 
-    // Leave culling OFF while testing the FBX.
-    // This prevents an incorrectly-wound FBX from disappearing.
-
-
-    // ============================================================
-    // ANIMATIONS
-    // ============================================================
-
-    int animationCount =
-        Absolut::Player.GetAnimationCount();
-
-    printf("FBX animation count: %d\n", animationCount);
-
-
-
-    // NEVER use index 5 unless there are at least 6 animations.
-    if (animationCount > 0)
-    {
-        printf(
-            "Playing animation: %s\n",
-            Absolut::Player.GetAnimationName(0).c_str()
-        );
-
-        if (!Absolut::Player.SetAnimation(0, true))
-        {
-            //none
-        }
-    }
-
-    // ============================================================
-    // AUDIO
-    // ============================================================
-
     Absolut::AudioSystem.Loop(
         "Resources/Sound/BackgroundMusic/LoadingActionBG.wav"
     );
 
-    // ============================================================
-    // DELTA TIME
-    // ============================================================
+
 
     auto lastTime =
         std::chrono::steady_clock::now();
 
     bool mouseLocked = true;
 
-    // ============================================================
-    // MAIN LOOP
-    // ============================================================
-
     while (Absolut::ScenePreview.update())
     {
 
+
 Absolut::SceneCamera.position =
         Absolut::Vec3(Player.position.x ,Player.position.y + 4.0f, Player.position.z + 7.5f);
-        Absolut::SceneCamera.pitch = 20;
-        // --------------------------------------------------------
-        // DELTA TIME
-        // --------------------------------------------------------
 
         auto now =
             std::chrono::steady_clock::now();
@@ -121,13 +79,8 @@ Absolut::SceneCamera.position =
 
         lastTime = now;
 
-        // Prevent a huge timestep after dragging/debugging.
         if (deltaSeconds > 0.1f)
             deltaSeconds = 0.1f;
-
-        // --------------------------------------------------------
-        // CLEAR
-        // --------------------------------------------------------
 
         Absolut::Clear(
             0.15f,
@@ -136,23 +89,16 @@ Absolut::SceneCamera.position =
             1.0f
         );
 
-        // --------------------------------------------------------
-        // CAMERA PROJECTION
-        // --------------------------------------------------------
-
         Absolut::SceneCamera.apply(
             Absolut::ScenePreview.getWidth(),
             Absolut::ScenePreview.getHeight()
         );
 
-        // --------------------------------------------------------
-        // MOUSE
-        // --------------------------------------------------------
-
-        //Absolut::Mouse::Get().Update();
 
 
-
+ if(Absolut::KeyPressed('P')){
+         Player.TakeDamage(10);
+    }
          Player.UpdatePlayer(deltaSeconds);
            Absolut::Player.position = Player.position;
 
@@ -183,13 +129,28 @@ Absolut::SceneCamera.position =
             Absolut::ScenePreview.getHeight()
         );
 
-        Absolut::text.Draw(
-            "Hello, world!",
-            50.0f,
-            100.0f,
-            1.0f
+ Absolut::DebugText.SetProjection(
+            Absolut::ScenePreview.getWidth(),
+            Absolut::ScenePreview.getHeight()
         );
-
+       Absolut::DebugText.Draw(
+ ("Health: " + std::to_string(Player.Health)).c_str(),
+    50.0f,
+    100.0f,
+    1.0f
+);
+Absolut::DebugText.Draw(
+ "The player model is temporary.",
+    50.0f,
+    150.0f,
+    1.0f
+);
+Absolut::DebugText.Draw(
+ "More features will come soon when Absolut-Engine-ULTRA is updated.",
+    50.0f,
+    200.0f,
+    1.0f
+);
         // --------------------------------------------------------
         // RESTORE DEPTH
         // --------------------------------------------------------
@@ -215,7 +176,11 @@ Absolut::SceneCamera.position =
     // SHUTDOWN
     // ============================================================
 
+
     Absolut::text.Unload();
+
+    Absolut::DebugText.Unload();
+
 
     Absolut::EndProcess();
 

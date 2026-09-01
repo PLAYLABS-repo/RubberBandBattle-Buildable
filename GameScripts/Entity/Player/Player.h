@@ -1,15 +1,16 @@
 #pragma once
 
 #include "Engine/dependencies/include.h"
-#include "GameScripts/RenderHandling/GroundPlane.h"
-#include <chrono>
-namespace RubberBandBattle{
+#include "../../RenderHandling/GroundPlane.h"
+
+namespace RubberBandBattle
+{
+
 class Player
 {
 public:
 
     Absolut::Vec3 position;
-
     Absolut::Collision collision;
 
     float verticalVelocity;
@@ -18,6 +19,13 @@ public:
     int lastAnimation;
     bool isJumping;
     float jumpTimer;
+
+    // Coyote time
+    float coyoteTimer;
+    float coyoteTime;
+
+    int Health;
+    int MaxHealth;
 
     Player()
         : position(0.0f, -2.5f, 0.0f),
@@ -29,14 +37,55 @@ public:
           isGrounded(true),
           lastAnimation(-1),
           isJumping(false),
-          jumpTimer(0.0f)
+          jumpTimer(0.0f),
+          coyoteTimer(0.12f),
+          coyoteTime(0.12f),
+          Health(100),
+          MaxHealth(100)
     {
         UpdateCollision();
     }
 
-    // ============================================================
-    // UPDATE COLLISION BOX
-    // ============================================================
+    bool IsDead() const
+    {
+        return Health <= 0;
+    }
+
+    void TakeDamage(int damage)
+    {
+        if (IsDead())
+            return;
+
+        Health -= damage;
+
+        if (Health < 0)
+            Health = 0;
+
+        if (IsDead())
+            OnDeath();
+    }
+
+    void Heal(int amount)
+    {
+        if (IsDead())
+            return;
+
+        Health += amount;
+
+        if (Health > MaxHealth)
+            Health = MaxHealth;
+    }
+
+    void SetHealth(int health)
+    {
+        Health = health;
+
+        if (Health < 0)
+            Health = 0;
+
+        if (Health > MaxHealth)
+            Health = MaxHealth;
+    }
 
     void UpdateCollision()
     {
@@ -49,8 +98,20 @@ public:
         );
     }
 
+    void OnDeath()
+    {
+        isJumping = false;
+        verticalVelocity = 0.0f;
+
+        Absolut::Player.SetAnimation(3, false);
+        lastAnimation = 3;
+    }
+
     void UpdatePlayer(float dt)
     {
+        if (IsDead())
+            return;
+
         float speed = 5.0f;
         float gravity = 20.0f;
         float jumpForce = 8.0f;
@@ -60,6 +121,10 @@ public:
             Absolut::KeyDown('S') ||
             Absolut::KeyDown('A') ||
             Absolut::KeyDown('D');
+
+        // -----------------------------------------------------
+        // Movement
+        // -----------------------------------------------------
 
         if (Absolut::KeyDown('W'))
         {
@@ -85,11 +150,62 @@ public:
             Absolut::Player.rotation.y = 90.0f;
         }
 
+        // -----------------------------------------------------
+        // Update collider
+        // -----------------------------------------------------
 
-        if (Absolut::KeyPressed(VK_SPACE) && isGrounded)
+        UpdateCollision();
+
+        // -----------------------------------------------------
+        // Ground collision
+        // -----------------------------------------------------
+
+        if (GroundCollision(collision) &&
+            verticalVelocity <= 0.0f)
+        {
+            position.y = GroundTop();
+
+            verticalVelocity = 0.0f;
+            isGrounded = true;
+
+            coyoteTimer = coyoteTime;
+
+            UpdateCollision();
+        }
+        else
+        {
+            isGrounded = false;
+        }
+
+        // -----------------------------------------------------
+        // Coyote time
+        // -----------------------------------------------------
+
+        if (isGrounded)
+        {
+            coyoteTimer = coyoteTime;
+        }
+        else
+        {
+            coyoteTimer -= dt;
+
+            if (coyoteTimer < 0.0f)
+                coyoteTimer = 0.0f;
+        }
+
+        // -----------------------------------------------------
+        // Jump
+        // -----------------------------------------------------
+
+        if (Absolut::KeyPressed(VK_SPACE) &&
+            coyoteTimer > 0.0f)
         {
             verticalVelocity = jumpForce;
+
             isGrounded = false;
+
+            // Consume coyote time.
+            coyoteTimer = 0.0f;
 
             isJumping = true;
             jumpTimer = 0.0f;
@@ -98,32 +214,47 @@ public:
             lastAnimation = 1;
         }
 
+        // -----------------------------------------------------
+        // Gravity
+        // -----------------------------------------------------
+
         if (!isGrounded)
         {
             verticalVelocity -= gravity * dt;
+
             position.y += verticalVelocity * dt;
         }
 
+        // -----------------------------------------------------
+        // Update collider after movement
+        // -----------------------------------------------------
+
         UpdateCollision();
 
-        if (GroundCollision(collision))
+        // -----------------------------------------------------
+        // Resolve ground collision
+        // -----------------------------------------------------
+
+        if (GroundCollision(collision) &&
+            verticalVelocity <= 0.0f)
         {
-            // Only resolve downward movement.
-            if (verticalVelocity <= 0.0f)
-            {
-                position.y = GroundTop();
+            position.y = GroundTop();
 
-                verticalVelocity = 0.0f;
-                isGrounded = true;
+            verticalVelocity = 0.0f;
+            isGrounded = true;
 
-                UpdateCollision();
-            }
+            coyoteTimer = coyoteTime;
+
+            UpdateCollision();
         }
         else
         {
             isGrounded = false;
         }
 
+        // -----------------------------------------------------
+        // Jump animation
+        // -----------------------------------------------------
 
         if (isJumping)
         {
@@ -135,6 +266,9 @@ public:
             }
         }
 
+        // -----------------------------------------------------
+        // Idle / walking animation
+        // -----------------------------------------------------
 
         if (!isJumping)
         {
@@ -151,6 +285,16 @@ public:
             }
         }
     }
+
+#ifdef _DEBUG
+
+    std::string PlayerGetAnimationName()
+    {
+        return Absolut::Player.GetAnimationName(lastAnimation);
+    }
+
+#endif
+
 };
 
 }

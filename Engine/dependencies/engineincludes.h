@@ -20,3 +20,4 @@
 #include "Engine/Src/Image/Font.h"
 #include "Math/Collision.h"
 #include "Log/Event.h"
+#include "Image/Interface.h"
