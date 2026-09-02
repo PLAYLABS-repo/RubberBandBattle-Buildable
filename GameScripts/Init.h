@@ -1,29 +1,26 @@
 #include "Engine/dependencies/include.h"
 namespace RubberBandBattle{
 
-  inline  RubberBandBattle::Mesh PlayerModel;
-     RubberBandBattle::Text text;
-      RubberBandBattle::Text DebugText;
+  inline    Absolut::Mesh PlayerModel;
+   Absolut::Text text;
+   Absolut::Text DebugText;
 
     inline bool InitAssets(){
 
 text.LoadFont("Resources/Font/Confale.ttf", 32);   // path + pixel size
 DebugText.LoadFont("Resources/Font/Confale.ttf", 32);   // path + pixel size
-text.SetProjection(ScenePreview.getWidth(), ScenePreview.getHeight());
-   RubberBandBattle::PlayerModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");      // match your viewport
-  RubberBandBattle::PlayerModel.GLTFApplyTex( "Resources/Skins/KifferTeamRed.png");
-Absolut::PlayerModel.position =
+text.SetProjection(Absolut::ScenePreview.getWidth(), Absolut::ScenePreview.getHeight());
+ PlayerModel.LoadFromGLTF("Resources/Mesh/Kiffer_Model_GM.glb");      // match your viewport
+ PlayerModel.GLTFApplyTex( "Resources/Skins/KifferTeamRed.png");
+PlayerModel.position =
         Absolut::Vec3(0.0f, 0.0f, 0.0f);
 
 
         Absolut::SceneCamera.pitch = 20;
-    Absolut::PlayerModel.useLighting = false;
+PlayerModel.useLighting = false;
 text.SetColor(1.0f, 1.0f, 1.0f, 1.0f);                // white, opaque
 
 
-cube.position = {0, 0, 0};
-cube.rotation.y = 30.0f;
-cube.scale = {1, 1, 1};
 
           return true;
     }

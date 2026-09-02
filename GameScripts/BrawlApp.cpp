@@ -27,7 +27,7 @@ void RunBrawlApp(BrawlMode mode)
 
     Absolut::HelloWorldInit();
 
-    Absolut::InitAssets();
+    RubberBandBattle::InitAssets();
 
     Absolut::Mouse::Get().BindWindow(
         Absolut::ScenePreview.getHandle()
@@ -112,17 +112,17 @@ void RunBrawlApp(BrawlMode mode)
                 }
 
                 // Player update
-                Player.UpdatePlayer(deltaSeconds);
+                RubberBandBattle::Player.UpdatePlayer(deltaSeconds);
 
                 // Temporary player model
-                Absolut::PlayerModel.position =
+                RubberBandBattle::PlayerModel.position =
                     Player.position;
 
-                Absolut::PlayerModel.UpdateAnimation(
+                RubberBandBattle::PlayerModel.UpdateAnimation(
                     deltaSeconds
                 );
 
-                Absolut::PlayerModel.draw();
+                RubberBandBattle::PlayerModel.draw();
 
                 // Ground
                 RubberBandBattle::GroundDraw();
@@ -136,16 +136,16 @@ void RunBrawlApp(BrawlMode mode)
 
             case BRAWL_MODE_GAME:
             {
-                PlayerModel.UpdatePlayer(deltaSeconds);
+                Player.UpdatePlayer(deltaSeconds);
 
-                Absolut::PlayerModel.position =
+                RubberBandBattle::PlayerModel.position =
                     Player.position;
 
-                Absolut::PlayerModel.UpdateAnimation(
+                RubberBandBattle::PlayerModel.UpdateAnimation(
                     deltaSeconds
                 );
 
-                Absolut::PlayerModel.draw();
+                RubberBandBattle::PlayerModel.draw();
 
                 RubberBandBattle::GroundDraw();
 
@@ -171,17 +171,17 @@ void RunBrawlApp(BrawlMode mode)
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
 
-        Absolut::text.SetProjection(
+        RubberBandBattle::text.SetProjection(
             Absolut::ScenePreview.getWidth(),
             Absolut::ScenePreview.getHeight()
         );
 
-        Absolut::DebugText.SetProjection(
+        RubberBandBattle::DebugText.SetProjection(
             Absolut::ScenePreview.getWidth(),
             Absolut::ScenePreview.getHeight()
         );
 
-        Absolut::DebugText.Draw(
+        RubberBandBattle::DebugText.Draw(
             ("Health: " +
              std::to_string(Player.Health)).c_str(),
             50.0f,
@@ -189,14 +189,14 @@ void RunBrawlApp(BrawlMode mode)
             1.0f
         );
 
-        Absolut::DebugText.Draw(
+        RubberBandBattle::DebugText.Draw(
             "The player model is temporary.",
             50.0f,
             150.0f,
             1.0f
         );
 
-        Absolut::DebugText.Draw(
+        RubberBandBattle::DebugText.Draw(
             "More features will come soon when Absolut-Engine-ULTRA is updated.",
             50.0f,
             200.0f,
@@ -222,8 +222,8 @@ void RunBrawlApp(BrawlMode mode)
     // SHUTDOWN
     // ============================================================
 
-    Absolut::text.Unload();
-    Absolut::DebugText.Unload();
+    RubberBandBattle::text.Unload();
+    RubberBandBattle::DebugText.Unload();
 
     Absolut::EndProcess();
 }
