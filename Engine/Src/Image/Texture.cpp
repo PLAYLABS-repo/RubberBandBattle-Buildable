@@ -17,8 +17,11 @@ Image::Image()
 
 bool Image::load(const char* path)
 {
+    if (!path)
+        return false;
+
     // ------------------------------------------------------------
-    // Find the image format
+    // Find image format
     // ------------------------------------------------------------
 
     FREE_IMAGE_FORMAT format =
@@ -46,7 +49,10 @@ bool Image::load(const char* path)
     // ------------------------------------------------------------
 
     FIBITMAP* bitmap =
-        FreeImage_Load(format, path);
+        FreeImage_Load(
+            format,
+            path
+        );
 
     if (!bitmap)
     {
@@ -60,16 +66,17 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // Convert to 32-bit
-    //
-    // FreeImage 32-bit images are BGRA.
-    // We convert them to RGBA for OpenGL.
+    // Convert to 32-bit BGRA
     // ------------------------------------------------------------
 
     FIBITMAP* converted =
-        FreeImage_ConvertTo32Bits(bitmap);
+        FreeImage_ConvertTo32Bits(
+            bitmap
+        );
 
-    FreeImage_Unload(bitmap);
+    FreeImage_Unload(
+        bitmap
+    );
 
     if (!converted)
     {
@@ -82,21 +89,32 @@ bool Image::load(const char* path)
     }
 
 
+    // ------------------------------------------------------------
+    // Dimensions
+    // ------------------------------------------------------------
+
     width =
-        (int)FreeImage_GetWidth(converted);
+        (int)FreeImage_GetWidth(
+            converted
+        );
 
     height =
-        (int)FreeImage_GetHeight(converted);
+        (int)FreeImage_GetHeight(
+            converted
+        );
 
 
-    if (width <= 0 || height <= 0)
+    if (width <= 0 ||
+        height <= 0)
     {
         printf(
             "Invalid image dimensions: %s\n",
             path
         );
 
-        FreeImage_Unload(converted);
+        FreeImage_Unload(
+            converted
+        );
 
         width = 0;
         height = 0;
@@ -106,13 +124,13 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // FreeImage stores pixels bottom-to-top.
-    //
-    // We make a normal RGBA buffer for OpenGL.
+    // Get bits
     // ------------------------------------------------------------
 
     BYTE* bits =
-        FreeImage_GetBits(converted);
+        FreeImage_GetBits(
+            converted
+        );
 
     if (!bits)
     {
@@ -121,7 +139,9 @@ bool Image::load(const char* path)
             path
         );
 
-        FreeImage_Unload(converted);
+        FreeImage_Unload(
+            converted
+        );
 
         width = 0;
         height = 0;
@@ -136,69 +156,114 @@ bool Image::load(const char* path)
 
 
     unsigned int pitch =
-        FreeImage_GetPitch(converted);
+        FreeImage_GetPitch(
+            converted
+        );
 
 
     // ------------------------------------------------------------
-    // Convert BGRA -> RGBA
+    // FreeImage BGRA bottom-up
+    //
+    // Convert to OpenGL-friendly RGBA top-down.
+    //
+    // IMPORTANT:
+    // Do NOT premultiply alpha.
     // ------------------------------------------------------------
 
-    for (int y = 0; y < height; ++y)
+    for (int y = 0;
+         y < height;
+         ++y)
     {
         BYTE* source =
-            bits + y * pitch;
+            bits +
+            y * pitch;
+
 
         int dstY =
-            height - 1 - y;
+            height -
+            1 -
+            y;
+
 
         unsigned char* destination =
             pixels.data() +
-            dstY * width * 4;
+            dstY *
+            width *
+            4;
 
 
-        for (int x = 0; x < width; ++x)
+        for (int x = 0;
+             x < width;
+             ++x)
         {
             BYTE* p =
-                source + x * 4;
+                source +
+                x * 4;
+
 
             unsigned char* out =
-                destination + x * 4;
+                destination +
+                x * 4;
 
 
-            // FreeImage = BGRA
-            // OpenGL   = RGBA
+            // FreeImage -> RGBA
 
-            out[0] = p[FI_RGBA_RED];
-            out[1] = p[FI_RGBA_GREEN];
-            out[2] = p[FI_RGBA_BLUE];
-            out[3] = p[FI_RGBA_ALPHA];
+            out[0] =
+                p[FI_RGBA_RED];
+
+            out[1] =
+                p[FI_RGBA_GREEN];
+
+            out[2] =
+                p[FI_RGBA_BLUE];
+
+            out[3] =
+                p[FI_RGBA_ALPHA];
         }
     }
 
 
-    FreeImage_Unload(converted);
+    FreeImage_Unload(
+        converted
+    );
 
 
     // ------------------------------------------------------------
-    // Premultiply alpha
+    // DEBUG: inspect first pixel
     // ------------------------------------------------------------
 
-    for (int i = 0; i < width * height; ++i)
+    printf(
+        "Texture: %s\n",
+        path
+    );
+
+    printf(
+        "Size: %d x %d\n",
+        width,
+        height
+    );
+
+    printf(
+        "First pixel RGBA: %u %u %u %u\n",
+        (unsigned int)pixels[0],
+        (unsigned int)pixels[1],
+        (unsigned int)pixels[2],
+        (unsigned int)pixels[3]
+    );
+
+
+    // ------------------------------------------------------------
+    // Delete old texture if one exists
+    // ------------------------------------------------------------
+
+    if (Texture != 0)
     {
-        unsigned char* p =
-            pixels.data() + i * 4;
+        glDeleteTextures(
+            1,
+            &Texture
+        );
 
-        float a =
-            p[3] / 255.0f;
-
-        p[0] =
-            (unsigned char)(p[0] * a + 0.5f);
-
-        p[1] =
-            (unsigned char)(p[1] * a + 0.5f);
-
-        p[2] =
-            (unsigned char)(p[2] * a + 0.5f);
+        Texture = 0;
     }
 
 
@@ -218,24 +283,37 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // Texture filtering
+    // Pixel unpack alignment
+    // ------------------------------------------------------------
+
+    glPixelStorei(
+        GL_UNPACK_ALIGNMENT,
+        1
+    );
+
+
+    // ------------------------------------------------------------
+    // FILTERING
+    //
+    // NEAREST is intentional for this diagnostic.
+    // It prevents neighboring atlas pixels from bleeding.
     // ------------------------------------------------------------
 
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_MIN_FILTER,
-        GL_LINEAR
+        GL_NEAREST
     );
 
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_MAG_FILTER,
-        GL_LINEAR
+        GL_NEAREST
     );
 
 
     // ------------------------------------------------------------
-    // Texture wrapping
+    // WRAPPING
     // ------------------------------------------------------------
 
     glTexParameteri(
@@ -252,7 +330,7 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // Upload RGBA pixels
+    // Upload exact RGBA bytes
     // ------------------------------------------------------------
 
     glTexImage2D(
@@ -269,7 +347,7 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // Check OpenGL error
+    // Check upload
     // ------------------------------------------------------------
 
     GLenum error =
@@ -282,15 +360,18 @@ bool Image::load(const char* path)
             error
         );
 
+
         glBindTexture(
             GL_TEXTURE_2D,
             0
         );
 
+
         glDeleteTextures(
             1,
             &Texture
         );
+
 
         Texture = 0;
 
@@ -302,13 +383,19 @@ bool Image::load(const char* path)
 
 
     // ------------------------------------------------------------
-    // Done
+    // Unbind
     // ------------------------------------------------------------
 
     glBindTexture(
         GL_TEXTURE_2D,
         0
     );
+
+
+    printf(
+        "Texture loaded successfully.\n"
+    );
+
 
     return true;
 }

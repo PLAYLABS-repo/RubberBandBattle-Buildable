@@ -392,8 +392,9 @@
 1512591001 c:\mingw\include\gl\glext.h
 	<windows.h>
 
-1786543906 c:\developmentfiles\absolutengine\\engine\src\window\window.h
+1788335955 c:\developmentfiles\absolutengine\\engine\src\window\window.h
 	"Engine/dependencies/include.h"
+	"Engine/Src/Input/InputMouse.h"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 
@@ -404,7 +405,7 @@
 
 1786273669 c:\developmentfiles\absolutengine\\engine\src\file\load.h
 
-1786705006 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
+1788247656 c:\developmentfiles\absolutengine\\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
 	"Engine/Src/Math/Vector.h"
 
@@ -918,7 +919,7 @@
 	"Log/Event.h"
 	"Image/Interface.h"
 
-1787140746 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
+1788336568 c:\developmentfiles\absolutengine\\engine\src\input\inputmouse.h
 	<windows.h>
 
 1786272572 source:c:\developmentfiles\absolutengine\gamescripts\init.cpp
@@ -1116,7 +1117,7 @@
 	<windows.h>
 	<KHR/khrplatform.h>
 
-1786711234 c:\developmentfiles\absolutengine\\engine\gles2render\render.h
+1788248155 c:\developmentfiles\absolutengine\\engine\gles2render\render.h
 	"Engine/dependencies/include.h"
 
 1787139763 c:\developmentfiles\absolutengine\\engine\gles2render\cameratransform.h
@@ -1376,7 +1377,7 @@
 	<stdbool.h>
 	<assert.h>
 
-1788085179 source:c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.cpp
+1788243956 source:c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
 
 1788179487 c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.h
@@ -1384,7 +1385,7 @@
 
 1786700095 c:\developmentfiles\absolutenginerbb\engine\src\math\vector.h
 
-1786705006 c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.h
+1788247656 c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.h
 	"Engine/dependencies/include.h"
 	"Engine/Src/Math/Vector.h"
 
@@ -1686,9 +1687,10 @@
 	<functional>
 	<vector>
 
-1788184151 c:\developmentfiles\absolutenginerbb\engine\src\image\interface.h
+1788335333 c:\developmentfiles\absolutenginerbb\engine\src\image\interface.h
 	"Engine/dependencies/include.h"
 	"Engine/Src/Image/Texture.h"
+	"Engine/Src/Image/Mapping.h"
 	"Engine/Src/Geom/Quad.h"
 	"Engine/Src/Input/InputMouse.h"
 
@@ -1722,7 +1724,7 @@
 	<algorithm>
 	<functional>
 
-1786712524 source:c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.cpp
+1788249626 source:c:\developmentfiles\absolutenginerbb\engine\src\geom\quad.cpp
 	"Quad.h"
 	<GLES2/gl2.h>
 	"Engine/GLES2Render/CameraTransform.h"
@@ -1739,23 +1741,23 @@
 1787138118 c:\developmentfiles\absolutenginerbb\engine\src\image\font.h
 	"Engine/dependencies/include.h"
 
-1786282940 source:c:\developmentfiles\absolutenginerbb\engine\src\image\mapping.cpp
+1788247291 source:c:\developmentfiles\absolutenginerbb\engine\src\image\mapping.cpp
 	"Mapping.h"
 	"json.hpp"
 	<fstream>
 	<string>
 
-1787127529 source:c:\developmentfiles\absolutenginerbb\engine\src\image\texture.cpp
+1788249231 source:c:\developmentfiles\absolutenginerbb\engine\src\image\texture.cpp
 	"Engine/dependencies/include.h"
 	"Texture.h"
 	<stdio.h>
 	<vector>
 
-1786793449 source:c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.cpp
+1788336575 source:c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.cpp
 	"InputMouse.h"
 	<windowsx.h>
 
-1787140746 c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.h
+1788336568 c:\developmentfiles\absolutenginerbb\engine\src\input\inputmouse.h
 	<windows.h>
 
 1786809570 source:c:\developmentfiles\absolutenginerbb\engine\src\sound\sound.cpp
@@ -1768,22 +1770,16 @@
 1786532599 source:c:\developmentfiles\absolutenginerbb\engine\src\window\window.cpp
 	"Window.h"
 
-1786543906 c:\developmentfiles\absolutenginerbb\engine\src\window\window.h
+1788335955 c:\developmentfiles\absolutenginerbb\engine\src\window\window.h
 	"Engine/dependencies/include.h"
+	"Engine/Src/Input/InputMouse.h"
 	<GLES2/gl2.h>
 	<EGL/egl.h>
 
-1788243023 source:c:\developmentfiles\absolutenginerbb\main.cpp
-	"Engine/Initialize/HelloInitializer.h"
-	"GameScripts/Init.h"
-	"Engine/dependencies/engineincludes.h"
-	"GameScripts/RenderHandling/GroundPlane.h"
-	"GameScripts/Entity/Player/Player.h"
-	<chrono>
-	<cmath>
-	<cstdio>
+1788344713 source:c:\developmentfiles\absolutenginerbb\main.cpp
+	"GameScripts/BrawlApp.h"
 
-1788243061 c:\developmentfiles\absolutenginerbb\gamescripts\init.h
+1788344666 c:\developmentfiles\absolutenginerbb\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1788182742 c:\developmentfiles\absolutenginerbb\engine\dependencies\engineincludes.h
@@ -1812,7 +1808,24 @@
 	"Engine/dependencies/include.h"
 	"Geom/Mesh.h"
 
-1788242825 c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.h
+1788337943 c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.h
 	"Engine/dependencies/include.h"
 	"../../RenderHandling/GroundPlane.h"
+
+1788344631 source:c:\developmentfiles\absolutenginerbb\gamescripts\brawlapp.cpp
+	"Engine/Initialize/HelloInitializer.h"
+	"Init.h"
+	"Engine/dependencies/engineincludes.h"
+	"RenderHandling/GroundPlane.h"
+	"GameScripts/Entity/Player/Player.h"
+	<chrono>
+	<string>
+
+1788179487 c:\developmentfiles\absolutengine\\engine\initialize\helloinitializer.h
+	"Engine/dependencies/engineincludes.h"
+
+1788344563 c:\developmentfiles\absolutengine\\gamescripts\entity\player\player.h
+	"Engine/dependencies/engineincludes.h"
+
+1788344614 c:\developmentfiles\absolutenginerbb\gamescripts\brawlapp.h
 

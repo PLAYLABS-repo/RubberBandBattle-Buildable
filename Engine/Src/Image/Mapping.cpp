@@ -1,4 +1,3 @@
-
 #include "Mapping.h"
 #include "json.hpp"
 
@@ -7,9 +6,11 @@
 
 using json = nlohmann::json;
 
-// Strip "folder/subfolder/" prefix.
-// Adobe Animate can export full paths, while animation lookups
-// commonly use only the bare sprite name.
+
+// ============================================================
+// STRIP PATH
+// ============================================================
+
 static std::string stripPath(const std::string& name)
 {
     size_t slash = name.find_last_of("/\\");
@@ -20,12 +21,69 @@ static std::string stripPath(const std::string& name)
     return name;
 }
 
+
+// ============================================================
+// LOAD ATLAS
+//
+// Supports:
+//
+// 1. Adobe Animate
+//
+//    {
+//        "ATLAS": {
+//            "SPRITES": [
+//                {
+//                    "SPRITE": {
+//                        "name": "...",
+//                        "x": ...,
+//                        "y": ...,
+//                        "w": ...,
+//                        "h": ...
+//                    }
+//                }
+//            ]
+//        }
+//    }
+//
+// 2. TexturePacker
+//
+//    {
+//        "frames": {
+//            "sprite.png": {
+//                "frame": {
+//                    "x": ...,
+//                    "y": ...,
+//                    "w": ...,
+//                    "h": ...
+//                },
+//                "rotated": true/false,
+//                ...
+//            }
+//        }
+//    }
+// ============================================================
+
 bool Absolut::Atlas::load(const char* path)
 {
+    frames.clear();
+
+    if (!path)
+        return false;
+
+
+    // ========================================================
+    // OPEN FILE
+    // ========================================================
+
     std::ifstream file(path);
 
     if (!file.is_open())
         return false;
+
+
+    // ========================================================
+    // PARSE JSON
+    // ========================================================
 
     json j;
 
@@ -38,52 +96,229 @@ bool Absolut::Atlas::load(const char* path)
         return false;
     }
 
-    if (!j.contains("ATLAS"))
-        return false;
 
-    if (!j["ATLAS"].contains("SPRITES"))
-        return false;
+    // ========================================================
+    // TEXTUREPACKER MODE
+    //
+    // TexturePacker JSON has a root "frames" object.
+    // ========================================================
 
-    for (auto& s : j["ATLAS"]["SPRITES"])
+    if (j.contains("frames") &&
+        j["frames"].is_object())
     {
-        if (!s.contains("SPRITE"))
-            continue;
+        json& texturePackerFrames =
+            j["frames"];
 
-        auto& sp = s["SPRITE"];
 
-        Absolut::Frame f;
+        for (auto it =
+             texturePackerFrames.begin();
+             it != texturePackerFrames.end();
+             ++it)
+        {
+            std::string fullName =
+                it.key();
 
-        f.x = sp.value("x", 0.0f);
-        f.y = sp.value("y", 0.0f);
-        f.w = sp.value("w", 0.0f);
-        f.h = sp.value("h", 0.0f);
+            json& sprite =
+                it.value();
 
-        std::string fullName =
-            sp.value("name", std::string(""));
 
-        if (fullName.empty())
-            continue;
+            if (!sprite.contains("frame"))
+                continue;
 
-        // Store using the bare sprite name.
-        std::string bareName = stripPath(fullName);
+            if (!sprite["frame"].is_object())
+                continue;
 
-        frames[bareName] = f;
 
-        // Also keep the original full path.
-        if (fullName != bareName)
-            frames[fullName] = f;
+            json& fr =
+                sprite["frame"];
+
+
+            Absolut::Frame f;
+
+            f.x =
+                fr.value(
+                    "x",
+                    0.0f
+                );
+
+            f.y =
+                fr.value(
+                    "y",
+                    0.0f
+                );
+
+            f.w =
+                fr.value(
+                    "w",
+                    0.0f
+                );
+
+            f.h =
+                fr.value(
+                    "h",
+                    0.0f
+                );
+
+
+            if (f.w <= 0.0f ||
+                f.h <= 0.0f)
+            {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // Store bare filename.
+            // ------------------------------------------------
+
+            std::string bareName =
+                stripPath(fullName);
+
+            frames[bareName] =
+                f;
+
+
+            // ------------------------------------------------
+            // Also store original path.
+            // ------------------------------------------------
+
+            if (fullName != bareName)
+            {
+                frames[fullName] =
+                    f;
+            }
+        }
+
+
+        return !frames.empty();
     }
 
-    return true;
+
+    // ========================================================
+    // ADOBE ANIMATE MODE
+    //
+    // Keep compatibility with your existing format.
+    // ========================================================
+
+    if (j.contains("ATLAS") &&
+        j["ATLAS"].is_object())
+    {
+        if (!j["ATLAS"].contains("SPRITES"))
+            return false;
+
+
+        if (!j["ATLAS"]["SPRITES"].is_array())
+            return false;
+
+
+        for (auto& s :
+             j["ATLAS"]["SPRITES"])
+        {
+            if (!s.contains("SPRITE"))
+                continue;
+
+
+            auto& sp =
+                s["SPRITE"];
+
+
+            Absolut::Frame f;
+
+
+            f.x =
+                sp.value(
+                    "x",
+                    0.0f
+                );
+
+            f.y =
+                sp.value(
+                    "y",
+                    0.0f
+                );
+
+            f.w =
+                sp.value(
+                    "w",
+                    0.0f
+                );
+
+            f.h =
+                sp.value(
+                    "h",
+                    0.0f
+                );
+
+
+            std::string fullName =
+                sp.value(
+                    "name",
+                    std::string("")
+                );
+
+
+            if (fullName.empty())
+                continue;
+
+
+            if (f.w <= 0.0f ||
+                f.h <= 0.0f)
+            {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // Bare name.
+            // ------------------------------------------------
+
+            std::string bareName =
+                stripPath(fullName);
+
+
+            frames[bareName] =
+                f;
+
+
+            // ------------------------------------------------
+            // Full path.
+            // ------------------------------------------------
+
+            if (fullName != bareName)
+            {
+                frames[fullName] =
+                    f;
+            }
+        }
+
+
+        return !frames.empty();
+    }
+
+
+    // ========================================================
+    // UNKNOWN FORMAT
+    // ========================================================
+
+    return false;
 }
+
+
+// ============================================================
+// GET FRAME
+// ============================================================
 
 bool Absolut::Atlas::get(
     const std::string& name,
     Frame& out
 ) const
 {
-    // First try the exact name.
-    auto it = frames.find(name);
+    // --------------------------------------------------------
+    // Exact match.
+    // --------------------------------------------------------
+
+    auto it =
+        frames.find(name);
 
     if (it != frames.end())
     {
@@ -91,23 +326,38 @@ bool Absolut::Atlas::get(
         return true;
     }
 
-    // If the caller supplied a path, try the bare name.
-    std::string bareName = stripPath(name);
 
-    it = frames.find(bareName);
+    // --------------------------------------------------------
+    // Bare filename.
+    // --------------------------------------------------------
+
+    std::string bareName =
+        stripPath(name);
+
+    it =
+        frames.find(bareName);
 
     if (it != frames.end())
     {
         out = it->second;
         return true;
     }
+
 
     return false;
-
 }
- void Absolut::FreeAtlas(Absolut::Atlas* atlas) {
-         if (!atlas)
-            return;
-     delete atlas;
-     }
 
+
+// ============================================================
+// FREE ATLAS
+// ============================================================
+
+void Absolut::FreeAtlas(
+    Absolut::Atlas* atlas
+)
+{
+    if (!atlas)
+        return;
+
+    delete atlas;
+}

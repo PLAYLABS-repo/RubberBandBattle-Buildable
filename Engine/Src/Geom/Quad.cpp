@@ -38,18 +38,19 @@ static const char* QuadVertexShader =
 
     "void main()\n"
     "{\n"
-    "    gl_Position = uProjection * uModel * "
-    "                  vec4(aPosition, 0.0, 1.0);\n"
+    "    gl_Position = "
+    "        uProjection * "
+    "        uModel * "
+    "        vec4(aPosition, 0.0, 1.0);\n"
 
     "    vTexCoord = aTexCoord;\n"
     "}\n";
 
 
 static const char* QuadFragmentShader =
-    "precision mediump float;\n"
+    "precision highp float;\n"
 
     "uniform sampler2D uTexture;\n"
-    "uniform vec4 uColor;\n"
     "uniform float uUseTexture;\n"
 
     "varying vec2 vTexCoord;\n"
@@ -58,13 +59,11 @@ static const char* QuadFragmentShader =
     "{\n"
     "    if (uUseTexture > 0.5)\n"
     "    {\n"
-    "        // Texture is used directly.\n"
-    "        // Do NOT multiply RGB by uColor.\n"
     "        gl_FragColor = texture2D(uTexture, vTexCoord);\n"
     "    }\n"
     "    else\n"
     "    {\n"
-    "        gl_FragColor = uColor;\n"
+    "        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
     "    }\n"
     "}\n";
 
@@ -75,13 +74,23 @@ static const char* QuadFragmentShader =
 
 static GLuint CompileShader(
     GLenum type,
-    const char* source)
+    const char* source
+)
 {
     GLuint shader =
-        glCreateShader(type);
+        glCreateShader(
+            type
+        );
 
     if (!shader)
+    {
+        printf(
+            "Quad: glCreateShader failed.\n"
+        );
+
         return 0;
+    }
+
 
     glShaderSource(
         shader,
@@ -90,7 +99,11 @@ static GLuint CompileShader(
         0
     );
 
-    glCompileShader(shader);
+
+    glCompileShader(
+        shader
+    );
+
 
     GLint success = 0;
 
@@ -100,9 +113,10 @@ static GLuint CompileShader(
         &success
     );
 
+
     if (!success)
     {
-        char log[1024];
+        char log[2048] = {};
 
         glGetShaderInfoLog(
             shader,
@@ -111,15 +125,20 @@ static GLuint CompileShader(
             log
         );
 
+
         printf(
             "Quad shader compilation failed:\n%s\n",
             log
         );
 
-        glDeleteShader(shader);
+
+        glDeleteShader(
+            shader
+        );
 
         return 0;
     }
+
 
     return shader;
 }
@@ -134,7 +153,9 @@ static bool InitQuadShader()
     if (quadShaderInitialized)
         return quadProgram != 0;
 
+
     quadShaderInitialized = true;
+
 
     GLuint vertexShader =
         CompileShader(
@@ -142,20 +163,32 @@ static bool InitQuadShader()
             QuadVertexShader
         );
 
+
     GLuint fragmentShader =
         CompileShader(
             GL_FRAGMENT_SHADER,
             QuadFragmentShader
         );
 
+
     if (!vertexShader ||
         !fragmentShader)
     {
         if (vertexShader)
-            glDeleteShader(vertexShader);
+        {
+            glDeleteShader(
+                vertexShader
+            );
+        }
+
 
         if (fragmentShader)
-            glDeleteShader(fragmentShader);
+        {
+            glDeleteShader(
+                fragmentShader
+            );
+        }
+
 
         return false;
     }
@@ -164,10 +197,16 @@ static bool InitQuadShader()
     quadProgram =
         glCreateProgram();
 
+
     if (!quadProgram)
     {
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+        glDeleteShader(
+            vertexShader
+        );
+
+        glDeleteShader(
+            fragmentShader
+        );
 
         return false;
     }
@@ -177,6 +216,7 @@ static bool InitQuadShader()
         quadProgram,
         vertexShader
     );
+
 
     glAttachShader(
         quadProgram,
@@ -189,6 +229,7 @@ static bool InitQuadShader()
         0,
         "aPosition"
     );
+
 
     glBindAttribLocation(
         quadProgram,
@@ -210,9 +251,10 @@ static bool InitQuadShader()
         &success
     );
 
+
     if (!success)
     {
-        char log[1024];
+        char log[2048] = {};
 
         glGetProgramInfoLog(
             quadProgram,
@@ -221,10 +263,12 @@ static bool InitQuadShader()
             log
         );
 
+
         printf(
             "Quad shader linking failed:\n%s\n",
             log
         );
+
 
         glDeleteProgram(
             quadProgram
@@ -232,19 +276,30 @@ static bool InitQuadShader()
 
         quadProgram = 0;
 
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+
+        glDeleteShader(
+            vertexShader
+        );
+
+        glDeleteShader(
+            fragmentShader
+        );
 
         return false;
     }
 
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(
+        vertexShader
+    );
+
+    glDeleteShader(
+        fragmentShader
+    );
 
 
     // --------------------------------------------------------
-    // LOCATIONS
+    // Locations
     // --------------------------------------------------------
 
     aPosition =
@@ -253,11 +308,13 @@ static bool InitQuadShader()
             "aPosition"
         );
 
+
     aTexCoord =
         glGetAttribLocation(
             quadProgram,
             "aTexCoord"
         );
+
 
     uProjection =
         glGetUniformLocation(
@@ -265,11 +322,13 @@ static bool InitQuadShader()
             "uProjection"
         );
 
+
     uModel =
         glGetUniformLocation(
             quadProgram,
             "uModel"
         );
+
 
     uTexture =
         glGetUniformLocation(
@@ -277,17 +336,24 @@ static bool InitQuadShader()
             "uTexture"
         );
 
+
     uColor =
         glGetUniformLocation(
             quadProgram,
             "uColor"
         );
 
+
     uUseTexture =
         glGetUniformLocation(
             quadProgram,
             "uUseTexture"
         );
+
+
+    printf(
+        "Quad shader initialized.\n"
+    );
 
 
     return true;
@@ -298,10 +364,17 @@ static bool InitQuadShader()
 // MATRIX HELPERS
 // ============================================================
 
-static void Identity(float* m)
+static void Identity(
+    float* m
+)
 {
-    for (int i = 0; i < 16; ++i)
+    for (int i = 0;
+         i < 16;
+         ++i)
+    {
         m[i] = 0.0f;
+    }
+
 
     m[0]  = 1.0f;
     m[5]  = 1.0f;
@@ -313,47 +386,89 @@ static void Identity(float* m)
 static void Multiply(
     float* out,
     const float* a,
-    const float* b)
+    const float* b
+)
 {
     float result[16];
 
-    for (int col = 0; col < 4; ++col)
+
+    for (int col = 0;
+         col < 4;
+         ++col)
     {
-        for (int row = 0; row < 4; ++row)
+        for (int row = 0;
+             row < 4;
+             ++row)
         {
-            result[col * 4 + row] =
-                a[0 * 4 + row] *
-                b[col * 4 + 0] +
+            result[
+                col * 4 + row
+            ] =
+                a[
+                    row
+                ] *
+                b[
+                    col * 4
+                ]
 
-                a[1 * 4 + row] *
-                b[col * 4 + 1] +
+                +
 
-                a[2 * 4 + row] *
-                b[col * 4 + 2] +
+                a[
+                    4 + row
+                ] *
+                b[
+                    col * 4 + 1
+                ]
 
-                a[3 * 4 + row] *
-                b[col * 4 + 3];
+                +
+
+                a[
+                    8 + row
+                ] *
+                b[
+                    col * 4 + 2
+                ]
+
+                +
+
+                a[
+                    12 + row
+                ] *
+                b[
+                    col * 4 + 3
+                ];
         }
     }
 
-    for (int i = 0; i < 16; ++i)
-        out[i] = result[i];
+
+    for (int i = 0;
+         i < 16;
+         ++i)
+    {
+        out[i] =
+            result[i];
+    }
 }
 
 
 static void Translate(
     float* m,
     float x,
-    float y)
+    float y
+)
 {
     float t[16];
 
-    Identity(t);
+    Identity(
+        t
+    );
+
 
     t[12] = x;
     t[13] = y;
 
+
     float result[16];
+
 
     Multiply(
         result,
@@ -361,26 +476,41 @@ static void Translate(
         t
     );
 
-    for (int i = 0; i < 16; ++i)
-        m[i] = result[i];
+
+    for (int i = 0;
+         i < 16;
+         ++i)
+    {
+        m[i] =
+            result[i];
+    }
 }
 
 
 static void Rotate(
     float* m,
-    float degrees)
+    float degrees
+)
 {
     float angle =
         degrees *
         3.14159265f /
         180.0f;
 
-    float c = cosf(angle);
-    float s = sinf(angle);
+
+    float c =
+        cosf(angle);
+
+    float s =
+        sinf(angle);
+
 
     float r[16];
 
-    Identity(r);
+    Identity(
+        r
+    );
+
 
     r[0] = c;
     r[1] = s;
@@ -388,7 +518,9 @@ static void Rotate(
     r[4] = -s;
     r[5] = c;
 
+
     float result[16];
+
 
     Multiply(
         result,
@@ -396,8 +528,14 @@ static void Rotate(
         r
     );
 
-    for (int i = 0; i < 16; ++i)
-        m[i] = result[i];
+
+    for (int i = 0;
+         i < 16;
+         ++i)
+    {
+        m[i] =
+            result[i];
+    }
 }
 
 
@@ -407,10 +545,11 @@ static void Rotate(
 
 void Quad::AnchorTo(
     QuadSpace from,
-    QuadSpace to)
+    QuadSpace to
+)
 {
     anchorFrom = from;
-    anchorTo   = to;
+    anchorTo = to;
 }
 
 
@@ -436,17 +575,19 @@ void Quad::draw()
         return;
 
 
-    bool hasTexture =
+    const bool hasTexture =
         texture != 0;
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // MODEL
-    // --------------------------------------------------------
+    // ========================================================
 
     float model[16];
 
-    Identity(model);
+    Identity(
+        model
+    );
 
 
     Translate(
@@ -456,18 +597,19 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // SKEW
-    // --------------------------------------------------------
+    // ========================================================
 
-    float sx =
+    float skewX =
         tanf(
             SkewX *
             3.14159265f /
             180.0f
         );
 
-    float sy =
+
+    float skewY =
         tanf(
             SkewY *
             3.14159265f /
@@ -477,13 +619,17 @@ void Quad::draw()
 
     float skew[16];
 
-    Identity(skew);
+    Identity(
+        skew
+    );
 
-    skew[4] = -sy;
-    skew[1] = -sx;
+
+    skew[4] = -skewY;
+    skew[1] = -skewX;
 
 
     float temp[16];
+
 
     Multiply(
         temp,
@@ -491,13 +637,19 @@ void Quad::draw()
         skew
     );
 
-    for (int i = 0; i < 16; ++i)
-        model[i] = temp[i];
+
+    for (int i = 0;
+         i < 16;
+         ++i)
+    {
+        model[i] =
+            temp[i];
+    }
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // PIVOT
-    // --------------------------------------------------------
+    // ========================================================
 
     Translate(
         model,
@@ -505,10 +657,12 @@ void Quad::draw()
         PivotY
     );
 
+
     Rotate(
         model,
         Rotation
     );
+
 
     Translate(
         model,
@@ -517,9 +671,9 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // BITMAP OFFSET
-    // --------------------------------------------------------
+    // ========================================================
 
     Translate(
         model,
@@ -528,40 +682,51 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
-    // PROJECTION
+    // ========================================================
+    // SCREEN PROJECTION
     //
-    // WORLD-anchored quads use the camera's current
-    // projection (published by Camera::apply() into
-    // Absolut::ActiveProjection - includes pan/zoom/rotation).
-    //
-    // SCREEN-anchored quads (HUD/UI) always use a fixed
-    // screen-space ortho and ignore the camera entirely.
-    // --------------------------------------------------------
+    // Keep your current 1280x720 UI coordinate system.
+    // ========================================================
 
     float screenProjection[16];
 
-    float left   = 0.0f;
-    float right  = 1280.0f;
-    float top    = 0.0f;
-    float bottom = 720.0f;
 
-    Identity(screenProjection);
+    const float left =
+        0.0f;
+
+    const float right =
+        1280.0f;
+
+    const float top =
+        0.0f;
+
+    const float bottom =
+        720.0f;
+
+
+    Identity(
+        screenProjection
+    );
+
 
     screenProjection[0] =
         2.0f /
         (right - left);
 
+
     screenProjection[5] =
         2.0f /
         (top - bottom);
 
+
     screenProjection[10] =
         -1.0f;
+
 
     screenProjection[12] =
         -(right + left) /
         (right - left);
+
 
     screenProjection[13] =
         -(top + bottom) /
@@ -574,41 +739,38 @@ void Quad::draw()
         : screenProjection;
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // VERTICES
-    // --------------------------------------------------------
+    //
+    // IMPORTANT:
+    // These use the Quad UV members exactly.
+    // ========================================================
 
     GLfloat vertices[] =
     {
-        0.0f, 0.0f,
-        u0, v0,
+        // position      // UV
+        0.0f, 0.0f,      u0, v0,
+        w,    0.0f,      u1, v0,
+        w,    h,         u1, v1,
 
-        w, 0.0f,
-        u1, v0,
-
-        w, h,
-        u1, v1,
-
-
-        0.0f, 0.0f,
-        u0, v0,
-
-        w, h,
-        u1, v1,
-
-        0.0f, h,
-        u0, v1
+        0.0f, 0.0f,      u0, v0,
+        w,    h,         u1, v1,
+        0.0f, h,         u0, v1
     };
 
 
-    // --------------------------------------------------------
-    // SHADER
-    // --------------------------------------------------------
+    // ========================================================
+    // PROGRAM
+    // ========================================================
 
     glUseProgram(
         quadProgram
     );
 
+
+    // ========================================================
+    // MATRICES
+    // ========================================================
 
     glUniformMatrix4fv(
         uProjection,
@@ -616,6 +778,7 @@ void Quad::draw()
         GL_FALSE,
         projection
     );
+
 
     glUniformMatrix4fv(
         uModel,
@@ -625,51 +788,58 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // COLOR
-    // --------------------------------------------------------
+    // ========================================================
 
     glUniform4f(
         uColor,
         r,
         g,
         b,
-        1.0f
+        a
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // TEXTURE MODE
-    // --------------------------------------------------------
+    // ========================================================
 
     glUniform1f(
         uUseTexture,
-        hasTexture ? 1.0f : 0.0f
+        hasTexture
+            ? 1.0f
+            : 0.0f
     );
 
 
-    // --------------------------------------------------------
-    // BLENDING
-    // --------------------------------------------------------
+    // ========================================================
+    // COLOR MASK
+    // ========================================================
 
-    if (hasTexture)
-    {
-        glEnable(GL_BLEND);
-
-        glBlendFunc(
-            GL_SRC_ALPHA,
-            GL_ONE_MINUS_SRC_ALPHA
-        );
-    }
-    else
-    {
-        glDisable(GL_BLEND);
-    }
+    glColorMask(
+        GL_TRUE,
+        GL_TRUE,
+        GL_TRUE,
+        GL_TRUE
+    );
 
 
-    // --------------------------------------------------------
+    // ========================================================
+    // BLEND
+    //
+    // DEBUG MODE:
+    // textured quads are opaque so blend cannot alter RGB.
+    // ========================================================
+
+    glDisable(
+        GL_BLEND
+    );
+
+
+    // ========================================================
     // TEXTURE
-    // --------------------------------------------------------
+    // ========================================================
 
     if (hasTexture)
     {
@@ -677,10 +847,12 @@ void Quad::draw()
             GL_TEXTURE0
         );
 
+
         glBindTexture(
             GL_TEXTURE_2D,
             texture
         );
+
 
         glUniform1i(
             uTexture,
@@ -689,13 +861,14 @@ void Quad::draw()
     }
 
 
-    // --------------------------------------------------------
-    // ATTRIBUTES
-    // --------------------------------------------------------
+    // ========================================================
+    // VERTEX ATTRIBUTES
+    // ========================================================
 
     glEnableVertexAttribArray(
         aPosition
     );
+
 
     glEnableVertexAttribArray(
         aTexCoord
@@ -711,6 +884,7 @@ void Quad::draw()
         vertices
     );
 
+
     glVertexAttribPointer(
         aTexCoord,
         2,
@@ -721,9 +895,9 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // DRAW
-    // --------------------------------------------------------
+    // ========================================================
 
     glDrawArrays(
         GL_TRIANGLES,
@@ -732,13 +906,14 @@ void Quad::draw()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // CLEANUP
-    // --------------------------------------------------------
+    // ========================================================
 
     glDisableVertexAttribArray(
         aPosition
     );
+
 
     glDisableVertexAttribArray(
         aTexCoord
@@ -754,7 +929,9 @@ void Quad::draw()
     }
 
 
-    glUseProgram(0);
+    glUseProgram(
+        0
+    );
 }
 
 }

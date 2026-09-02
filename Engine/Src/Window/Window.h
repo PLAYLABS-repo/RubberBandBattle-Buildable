@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/dependencies/include.h"
+#include "Engine/Src/Input/InputMouse.h"
 
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
@@ -75,6 +76,27 @@ private:
                     return 0;
                 }
 
+                break;
+            }
+
+            // --------------------------------------------------
+            // MOUSE
+            //
+            // Previously these messages were never forwarded
+            // anywhere, so Mouse::isLDown / x / y / gameX / gameY
+            // never changed - nothing could ever register as
+            // hovered/pressed/clicked.
+            // --------------------------------------------------
+
+            case WM_MOUSEMOVE:
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONUP:
+            {
+                Mouse::Get().UpdateMessage(m, w, l);
                 break;
             }
         }
@@ -163,10 +185,10 @@ public:
             use EGL_DEFAULT_DISPLAY.
         */
 
-        display = eglGetDisplay(
-            (EGLNativeDisplayType)dc
-        );
+       display = eglGetDisplay(
+    EGL_DEFAULT_DISPLAY
 
+);
         if (display == EGL_NO_DISPLAY)
         {
             destroy();
@@ -380,7 +402,32 @@ public:
             width,
             height
         );
+printf("EGL error after make current: 0x%04X\n", eglGetError());
 
+GLint viewport[4] = {0, 0, 0, 0};
+
+glGetIntegerv(
+    GL_VIEWPORT,
+    viewport
+);
+
+printf(
+    "GL viewport: %d %d %d %d\n",
+    viewport[0],
+    viewport[1],
+    viewport[2],
+    viewport[3]
+);
+
+printf(
+    "GL_RENDERER: %s\n",
+    glGetString(GL_RENDERER)
+);
+
+printf(
+    "GL_VERSION: %s\n",
+    glGetString(GL_VERSION)
+);
         return true;
     }
 
@@ -626,6 +673,7 @@ public:
 
         return r.bottom - r.top;
     }
+
 };
 
 }
