@@ -1377,7 +1377,7 @@
 	<stdbool.h>
 	<assert.h>
 
-1788243956 source:c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.cpp
+1788346885 source:c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.cpp
 	"HelloInitializer.h"
 
 1788179487 c:\developmentfiles\absolutenginerbb\engine\initialize\helloinitializer.h
@@ -1779,7 +1779,7 @@
 1788344713 source:c:\developmentfiles\absolutenginerbb\main.cpp
 	"GameScripts/BrawlApp.h"
 
-1788344666 c:\developmentfiles\absolutenginerbb\gamescripts\init.h
+1788348578 c:\developmentfiles\absolutenginerbb\gamescripts\init.h
 	"Engine/dependencies/include.h"
 
 1788182742 c:\developmentfiles\absolutenginerbb\engine\dependencies\engineincludes.h
@@ -1804,19 +1804,19 @@
 	"Log/Event.h"
 	"Image/Interface.h"
 
-1788179718 c:\developmentfiles\absolutenginerbb\gamescripts\renderhandling\groundplane.h
+1788344965 c:\developmentfiles\absolutenginerbb\gamescripts\renderhandling\groundplane.h
+	"Engine/dependencies/engineincludes.h"
 	"Engine/dependencies/include.h"
 	"Geom/Mesh.h"
 
-1788337943 c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.h
-	"Engine/dependencies/include.h"
-	"../../RenderHandling/GroundPlane.h"
+1788349229 c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.h
+	"Engine/dependencies/engineincludes.h"
 
-1788344631 source:c:\developmentfiles\absolutenginerbb\gamescripts\brawlapp.cpp
+1788348036 source:c:\developmentfiles\absolutenginerbb\gamescripts\brawlapp.cpp
 	"Engine/Initialize/HelloInitializer.h"
 	"Init.h"
 	"Engine/dependencies/engineincludes.h"
-	"RenderHandling/GroundPlane.h"
+	"Environment/GroundPlane.h"
 	"GameScripts/Entity/Player/Player.h"
 	<chrono>
 	<string>
@@ -1824,8 +1824,19 @@
 1788179487 c:\developmentfiles\absolutengine\\engine\initialize\helloinitializer.h
 	"Engine/dependencies/engineincludes.h"
 
-1788344563 c:\developmentfiles\absolutengine\\gamescripts\entity\player\player.h
+1788345056 c:\developmentfiles\absolutengine\\gamescripts\entity\player\player.h
 	"Engine/dependencies/engineincludes.h"
 
 1788344614 c:\developmentfiles\absolutenginerbb\gamescripts\brawlapp.h
+
+1788348591 source:c:\developmentfiles\absolutenginerbb\gamescripts\entity\player\player.cpp
+	"Player.h"
+	"../../Environment/GroundPlane.h"
+
+1788346481 c:\developmentfiles\absolutenginerbb\gamescripts\environment\groundplane.h
+	"Engine/dependencies/engineincludes.h"
+
+1788346642 source:c:\developmentfiles\absolutenginerbb\gamescripts\environment\groundplane.cpp
+	"GroundPlane.h"
+	"engineincludes.h"
 

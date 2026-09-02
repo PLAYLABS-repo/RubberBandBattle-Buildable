@@ -1,5 +1,6 @@
 #include "Player.h"
-#include "../../RenderHandling/GroundPlane.h"
+
+#include "../../Environment/GroundPlane.h"
 
 namespace RubberBandBattle
 {
@@ -12,7 +13,7 @@ Player::Player()
       ),
       verticalVelocity(0.0f),
       isGrounded(true),
-      lastAnimation(-1),
+      rotationY(0.0f),
       isJumping(false),
       jumpTimer(0.0f),
       Health(100),
@@ -33,6 +34,9 @@ void Player::TakeDamage(int damage)
     if (IsDead())
         return;
 
+    if (damage <= 0)
+        return;
+
     Health -= damage;
 
     if (Health < 0)
@@ -46,6 +50,9 @@ void Player::TakeDamage(int damage)
 void Player::Heal(int amount)
 {
     if (IsDead())
+        return;
+
+    if (amount <= 0)
         return;
 
     Health += amount;
@@ -84,11 +91,7 @@ void Player::OnDeath()
     isJumping = false;
     verticalVelocity = 0.0f;
 
-    PlayerModel.SetAnimation(
-        3,
-        false
-    );
-
+    // Animation is handled by BrawlApp.cpp.
     lastAnimation = 3;
 }
 
@@ -98,7 +101,7 @@ void Player::UpdatePlayer(float dt)
     if (IsDead())
         return;
 
-    const float speed = 5.0f;
+    float speed = 5.0f;
     const float gravity = 20.0f;
     const float jumpForce = 8.0f;
 
@@ -112,33 +115,35 @@ void Player::UpdatePlayer(float dt)
     // MOVEMENT
     // --------------------------------------------------------
 
+    if (Absolut::KeyDown(VK_SHIFT))
+    {
+        speed *= 2.0f;
+    }
+
     if (Absolut::KeyDown('W'))
     {
         position.z -= speed * dt;
-      PlayerModel.rotation.y = 180.0f;
+        rotationY = 180.0f;
     }
 
     if (Absolut::KeyDown('S'))
     {
         position.z += speed * dt;
-        PlayerModel.rotation.y = 0.0f;
+        rotationY = 0.0f;
     }
 
     if (Absolut::KeyDown('A'))
     {
         position.x -= speed * dt;
-        PlayerModel.rotation.y = -90.0f;
+        rotationY = -90.0f;
     }
 
     if (Absolut::KeyDown('D'))
     {
         position.x += speed * dt;
-       PlayerModel.rotation.y = 90.0f;
+        rotationY = 90.0f;
     }
 
-    // --------------------------------------------------------
-    // JUMP
-    // --------------------------------------------------------
 
     if (Absolut::KeyPressed(VK_SPACE) && isGrounded)
     {
@@ -148,17 +153,8 @@ void Player::UpdatePlayer(float dt)
         isJumping = true;
         jumpTimer = 0.0f;
 
-       PlayerModel.SetAnimation(
-            1,
-            false
-        );
-
         lastAnimation = 1;
     }
-
-    // --------------------------------------------------------
-    // GRAVITY
-    // --------------------------------------------------------
 
     if (!isGrounded)
     {
@@ -166,18 +162,14 @@ void Player::UpdatePlayer(float dt)
         position.y += verticalVelocity * dt;
     }
 
-    // --------------------------------------------------------
-    // COLLISION
-    // --------------------------------------------------------
-
     UpdateCollision();
 
-    float groundTop = GroundTop();
+    float top = GroundTop();
 
-    if (position.y <= groundTop &&
+    if (position.y <= top &&
         verticalVelocity <= 0.0f)
     {
-        position.y = groundTop;
+        position.y = top;
 
         verticalVelocity = 0.0f;
         isGrounded = true;
@@ -211,11 +203,6 @@ void Player::UpdatePlayer(float dt)
 
         if (animation != lastAnimation)
         {
-          PlayerModel.SetAnimation(
-                animation,
-                true
-            );
-
             lastAnimation = animation;
         }
     }
@@ -226,10 +213,25 @@ void Player::UpdatePlayer(float dt)
 
 std::string Player::PlayerGetAnimationName()
 {
-    return Absolut::Player.GetAnimationName(
-        lastAnimation
-    );
+    switch (lastAnimation)
+    {
+        case 0:
+            return "Anim_Idle";
+
+        case 1:
+            return "Anim_Jump";
+
+        case 3:
+            return "Anim_Death";
+
+        case 4:
+            return "Anim_Walk";
+
+        default:
+            return "Anim_Unknown";
+    }
 }
+
 
 #endif
 

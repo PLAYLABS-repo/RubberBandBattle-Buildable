@@ -15,7 +15,9 @@ public:
     float verticalVelocity;
     bool isGrounded;
 
-    int lastAnimation;
+    inline static int lastAnimation = -1;
+
+    float rotationY;
 
     bool isJumping;
     float jumpTimer;
@@ -33,12 +35,12 @@ public:
 
     void UpdateCollision();
     void OnDeath();
-
     void UpdatePlayer(float dt);
 
 #ifdef _DEBUG
     std::string PlayerGetAnimationName();
 #endif
+
 };
 
 }

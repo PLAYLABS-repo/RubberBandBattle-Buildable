@@ -1,4 +1,5 @@
 #include "Engine/dependencies/include.h"
+
 namespace RubberBandBattle{
 
   inline    Absolut::Mesh PlayerModel;

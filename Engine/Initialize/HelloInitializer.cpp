@@ -13,7 +13,7 @@ Absolut::Camera SceneCamera;
 
 extern Audio AudioSystem;
   AudioSystem.Init();
-    ScenePreview.create("sp.gm", 1280, 720);
+    ScenePreview.create("RubberBandBattle", 1280, 720);
 
 
     ScenePreview.setVSync(true);

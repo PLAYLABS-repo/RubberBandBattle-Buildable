@@ -1,7 +1,7 @@
 #include "Engine/Initialize/HelloInitializer.h"
 #include "Init.h"
 #include "Engine/dependencies/engineincludes.h"
-#include "RenderHandling/GroundPlane.h"
+#include "Environment/GroundPlane.h"
 #include "GameScripts/Entity/Player/Player.h"
 
 #include <chrono>
@@ -36,7 +36,7 @@ void RunBrawlApp(BrawlMode mode)
     Absolut::SceneCamera.mode =
         Absolut::ProjectionMode::Perspective;
 
-    RubberBandBattle::GroundInit(150, 150);
+GroundInit(150, 150);
 
     Absolut::AudioSystem.Loop(
         "Resources/Sound/BackgroundMusic/LoadingActionBG.wav"
@@ -103,33 +103,76 @@ void RunBrawlApp(BrawlMode mode)
             // DEBUG
             // ====================================================
 
-            case BRAWL_MODE_DEBUG:
-            {
-                // Test damage
-                if (Absolut::KeyPressed('P'))
-                {
-                    Player.TakeDamage(10);
-                }
+          case BRAWL_MODE_DEBUG:
+{
+    // --------------------------------------------------------
+    // TEST DAMAGE
+    // --------------------------------------------------------
 
-                // Player update
-                RubberBandBattle::Player.UpdatePlayer(deltaSeconds);
+    if (Absolut::KeyPressed('P'))
+    {
+        Player.TakeDamage(10);
+        printf("Health: %d\n", Player.Health);
+    }
 
-                // Temporary player model
-                RubberBandBattle::PlayerModel.position =
-                    Player.position;
+    // --------------------------------------------------------
+    // PLAYER UPDATE
+    // --------------------------------------------------------
 
-                RubberBandBattle::PlayerModel.UpdateAnimation(
-                    deltaSeconds
-                );
+    Player.UpdatePlayer(deltaSeconds);
 
-                RubberBandBattle::PlayerModel.draw();
+    // --------------------------------------------------------
+    // APPLY PLAYER ANIMATION
+    // --------------------------------------------------------
 
-                // Ground
-                RubberBandBattle::GroundDraw();
+    static int appliedAnimation = -1;
 
-                break;
-            }
+    if (Player.lastAnimation != appliedAnimation)
+    {
+        bool looping =
+            Player.lastAnimation != 1 &&
+            Player.lastAnimation != 3;
 
+        RubberBandBattle::PlayerModel.SetAnimation(
+            Player.lastAnimation,
+            looping
+        );
+
+        appliedAnimation = Player.lastAnimation;
+    }
+
+    // --------------------------------------------------------
+    // PLAYER TRANSFORM
+    // --------------------------------------------------------
+
+    RubberBandBattle::PlayerModel.position =
+        Player.position;
+
+    RubberBandBattle::PlayerModel.rotation.y =
+        Player.rotationY;
+
+    // --------------------------------------------------------
+    // ADVANCE ANIMATION
+    // --------------------------------------------------------
+
+    RubberBandBattle::PlayerModel.UpdateAnimation(
+        deltaSeconds
+    );
+
+    // --------------------------------------------------------
+    // DRAW PLAYER
+    // --------------------------------------------------------
+
+    RubberBandBattle::PlayerModel.draw();
+
+    // --------------------------------------------------------
+    // DRAW GROUND
+    // --------------------------------------------------------
+
+    GroundDraw();
+
+    break;
+}
             // ====================================================
             // GAME
             // ====================================================
@@ -147,7 +190,7 @@ void RunBrawlApp(BrawlMode mode)
 
                 RubberBandBattle::PlayerModel.draw();
 
-                RubberBandBattle::GroundDraw();
+            GroundDraw();
 
                 break;
             }
@@ -156,12 +199,7 @@ void RunBrawlApp(BrawlMode mode)
             // FREE
             // ====================================================
 
-            case BRAWL_MODE_FREE:
-            {
-                // Free mode logic goes here.
 
-                break;
-            }
         }
 
         // ========================================================
@@ -203,6 +241,13 @@ void RunBrawlApp(BrawlMode mode)
             1.0f
         );
 
+
+ if (Absolut::KeyPressed('P')){
+
+    Player.Health -= 10.0f;
+    printf("Health diminished \n");
+}
+
         // ========================================================
         // RESTORE DEPTH
         // ========================================================
@@ -231,11 +276,3 @@ void RunBrawlApp(BrawlMode mode)
 } // namespace RubberBandBattle
 
 
-int main()
-{
-    RubberBandBattle::RunBrawlApp(
-        RubberBandBattle::BRAWL_MODE_DEBUG
-    );
-
-    return 0;
-}
